@@ -446,6 +446,7 @@ namespace FSAutoQuest
 
             if (succeeded)
             {
+                SweepAllQuestRoomsLoot(true);
                 HandleSuccess(qdm, qs);
                 return;
             }
@@ -470,6 +471,7 @@ namespace FSAutoQuest
             {
                 var qom = Singleton("QuestObjectiveMgr");
                 if (qom != null) ProgressObjectives(qom);
+                SweepAllQuestRoomsLoot(false);
             }
         }
 
@@ -539,9 +541,9 @@ namespace FSAutoQuest
                     {
                         try
                         {
-                            Call(room, "CollectFirstLoot");
+                            CollectAllRoomLoot(room);
                             _nextActionTime = Time.time + CfgInterval.Value;
-                            LogV("Loot toplaniyor: " + RoomName(room));
+                            LogV("Loot toplandi: " + RoomName(room));
                         }
                         catch (Exception e)
                         {
@@ -572,6 +574,129 @@ namespace FSAutoQuest
                         return;
                     }
                 }
+            }
+        }
+
+        private void CollectAllRoomLoot(object room)
+        {
+            if (room == null) return;
+
+            // 1. Düşman cesetlerinin loot ikonlarını aç
+            try { Call(room, "ShowCorpsesLoot", true); } catch { }
+
+            // 2. Odadaki TÜM konteynerleri topla (kasa, masa, dolap vb.)
+            try
+            {
+                var lootList = M(room, "m_lootObjects") as IList;
+                if (lootList != null)
+                {
+                    while (lootList.Count > 0)
+                    {
+                        var lootObj = lootList[0];
+                        if (lootObj == null) { lootList.RemoveAt(0); continue; }
+                        var containedLoot = M(lootObj, "ContainedLoot");
+                        Call(room, "OnLootCollectedFromContainer", containedLoot, lootObj);
+                        if (lootList.Count > 0 && lootList[0] == lootObj)
+                        {
+                            lootList.RemoveAt(0);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogV("Konteyner toplama hatasi: " + Inner(ex).Message);
+            }
+
+            // 3. Odadaki TÜM ölü düşman cesetlerini topla
+            try
+            {
+                var fighters = M(room, "m_fighterInstances") as IList;
+                if (fighters != null)
+                {
+                    foreach (var f in fighters)
+                    {
+                        if (f == null) continue;
+                        bool alive = false;
+                        try { alive = Truthy(Call(f, "IsAlive")); } catch { }
+                        if (!alive)
+                        {
+                            try
+                            {
+                                SetMember(f, "m_canCollectLoot", true);
+                                Call(f, "OnCollect");
+                            }
+                            catch
+                            {
+                                try
+                                {
+                                    Call(f, "CollectLoot");
+                                    Call(f, "ReleaseInstance");
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogV("Ceset loot toplama hatasi: " + Inner(ex).Message);
+            }
+
+            // 4. Oda tamamlama ödüllerini topla
+            try
+            {
+                if (Truthy(M(room, "HasCompletionRoomLoot")))
+                {
+                    var coroutine = Call(room, "CollectCompletionRoomRewards");
+                    if (coroutine is IEnumerator)
+                    {
+                        StartCoroutine((IEnumerator)coroutine);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogV("Oda tamamlama odulu hatasi: " + Inner(ex).Message);
+            }
+        }
+
+        private void SweepAllQuestRoomsLoot(bool forceCompleteAll)
+        {
+            try
+            {
+                var roomType = FindType("QuestRoom");
+                if (roomType == null) return;
+
+                var allRooms = UnityEngine.Object.FindObjectsOfType(roomType);
+                if (allRooms == null || allRooms.Length == 0) return;
+
+                foreach (var obj in allRooms)
+                {
+                    if (obj == null) continue;
+
+                    // Odayı temizle (düşmanlar öldürüldü sayılır)
+                    if (forceCompleteAll && !Truthy(M(obj, "IsRoomClearOutSucceeded")))
+                    {
+                        try { Call(obj, "SetAndNotifyRoomClearedOut", EnumVal("EQuestRoomResult", "Succeeded", 1)); }
+                        catch { }
+                    }
+
+                    // Odadaki tüm lootları (konteynerler + cesetler + tamamlama) topla
+                    CollectAllRoomLoot(obj);
+
+                    // Odayı toplandı olarak işaretle
+                    if (forceCompleteAll && !Truthy(M(obj, "IsRoomPickUpSucceeded")))
+                    {
+                        try { Call(obj, "SetAndNotifyRoomPickedUp", EnumVal("EQuestRoomResult", "Succeeded", 1)); }
+                        catch { }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                LogV("Genel oda supurme hatasi: " + Inner(e).Message);
             }
         }
 
