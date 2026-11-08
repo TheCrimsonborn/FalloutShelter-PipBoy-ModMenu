@@ -103,6 +103,21 @@ namespace FSAutoQuest
             SetEnabled(!IsEnabled);
         }
 
+        public static bool IsAutoReturnEnabled
+        {
+            get { return CfgAutoReturn != null && CfgAutoReturn.Value; }
+            set { SetAutoReturnEnabled(value); }
+        }
+
+        public static void SetAutoReturnEnabled(bool value)
+        {
+            if (CfgAutoReturn == null) return;
+            bool changed = CfgAutoReturn.Value != value;
+            CfgAutoReturn.Value = value;
+            if (changed && Log != null)
+                Log.LogInfo("Otomatik Kasaya Donus: " + (value ? "ACIK" : "KAPALI"));
+        }
+
         /// <summary>Mod menuden "Sakinleri Max Seviye Yap" icin.</summary>
         public static void QueueMaxLevelDwellers()
         {
@@ -130,8 +145,8 @@ namespace FSAutoQuest
                 "Gorev hedeflerini otomatik tamamla.");
             CfgAutoHeal = Config.Bind("Genel", "OtomatikIyilestir", true,
                 "Gorev sirasinda sakinleri Stimpak/RadAway ile otomatik iyilestir.");
-            CfgAutoReturn = Config.Bind("Genel", "KasaDonusu", true,
-                "Gorev basarili olunca otomatik olarak kasaya don.");
+            CfgAutoReturn = Config.Bind("Genel", "KasaDonusu", false,
+                "Gorev basarili olunca otomatik olarak kasaya don. (Kapaliysa kullanicinin Return to Vault butonuna basmasini bekler)");
             CfgAutoRevive = Config.Bind("Genel", "OtomatikCanlandir", false,
                 "Gorevde olen sakinleri otomatik canlandir (deneysel).");
             CfgRefill = Config.Bind("Sarf", "SarfMalzemeTamamla", true,

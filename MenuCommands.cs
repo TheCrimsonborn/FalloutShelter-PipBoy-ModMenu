@@ -14,6 +14,7 @@ namespace FSAutoQuest.Menu
     public class MenuPlugin : BaseUnityPlugin
     {
         private AutoQuestToggleCommand _toggle;
+        private AutoReturnToggleCommand _autoReturn;
         private MaxLevelDwellersCommand _maxLevel;
         private LanguageToggleCommand _langToggle;
         private BypassQuestRequirementsCommand _bypassQuestReqs;
@@ -41,6 +42,7 @@ namespace FSAutoQuest.Menu
             }
 
             _toggle = new AutoQuestToggleCommand();
+            _autoReturn = new AutoReturnToggleCommand();
             _maxLevel = new MaxLevelDwellersCommand();
             _langToggle = new LanguageToggleCommand();
             _bypassQuestReqs = new BypassQuestRequirementsCommand();
@@ -73,6 +75,7 @@ namespace FSAutoQuest.Menu
                 if (!_registered)
                 {
                     menu.RegisterCommand(_toggle);
+                    menu.RegisterCommand(_autoReturn);
                     menu.RegisterCommand(_maxLevel);
                     menu.RegisterCommand(_langToggle);
                     menu.RegisterCommand(_bypassQuestReqs);
@@ -350,6 +353,39 @@ namespace FSAutoQuest.Menu
         }
     }
 
+    /// <summary>Gorev tamamlandiginda otomatik kasaya donmeyi kontrol eder.</summary>
+    internal class AutoReturnToggleCommand : CustomCommand
+    {
+        public override string Name
+        {
+            get { return MenuPlugin.IsTurkish ? "Otomatik Kasaya Don" : "Auto Return to Vault"; }
+        }
+        public override string Description
+        {
+            get
+            {
+                return MenuPlugin.IsTurkish
+                    ? "Gorev bittiginde onay beklemeden kasaya doner. Kapaliysa 'Return to Vault' butonunu tiklamanizi bekler."
+                    : "Automatically returns to vault when quest is done. If off, waits for you to click 'Return to Vault'.";
+            }
+        }
+        public override string Format { get { return "/otomatikkasayadon"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Otomatik Gorev" : "FSAutoQuest"; } }
+
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+
+        public override bool IsEnabled
+        {
+            get { return AutoQuestPlugin.IsAutoReturnEnabled; }
+            set { AutoQuestPlugin.SetAutoReturnEnabled(value); }
+        }
+
+        public override void Execute(CommandInput message)
+        {
+        }
+    }
+
     /// <summary>Gorevlerin seviye, silah, kiyafet ve SPECIAL sartlarini kaldirir.</summary>
     internal class BypassQuestRequirementsCommand : CustomCommand
     {
@@ -446,6 +482,7 @@ namespace FSAutoQuest.Menu
             { "Bypass Room Build Requirement", "Oda Insa Nufus Sartini Kaldir" },
             { "Bypass Upgrade Dweller Requirement", "Oda Yukseltme Nufus Sartini Kaldir" },
             { "Bypass Quest Requirements", "Gorev Sartlarini Kaldir" },
+            { "Auto Return to Vault", "Otomatik Kasaya Don" },
             { "No Rush Fail", "Hizlandirma Asla Basarisiz Olmasin" },
             { "Override Incident Chance", "Olay Ihtimalini Sabitle" },
             { "Set Incident Chance", "Olay Ihtimali Oranini Belirle" },
@@ -524,6 +561,7 @@ namespace FSAutoQuest.Menu
             { "Bypass Room Build Requirement", "Odalari acmak icin gereken sakin sayisi sartini kaldirir." },
             { "Bypass Upgrade Dweller Requirement", "Oda seviyesini yukseltmek icin gereken sakin sayisi sinirini kaldirir." },
             { "Bypass Quest Requirements", "Seviye, silah, kiyafet ve SPECIAL sartlari olmadan tum gorevleri baslatmanizi saglar." },
+            { "Auto Return to Vault", "Gorev bittiginde onay beklemeden kasaya doner. Kapaliysa 'Return to Vault' butonunu tiklamanizi bekler." },
             { "No Rush Fail", "Oda hizlandirmalarinda (Rush) yangin, akrep veya felaket cikmasini engeller." },
             { "Override Incident Chance", "Rastgele olaylarin (yangin, baskin vb.) cikma ihtimalini sabitler." },
             { "Set Incident Chance", "Olay ihtimali yuzdesini (0-100) ayarlar (/overrideincidentchance ile kullanilir)." },
