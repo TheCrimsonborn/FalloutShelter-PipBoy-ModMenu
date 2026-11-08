@@ -56,6 +56,7 @@ $menuRefs = @(
 Invoke-Compile -Sources @(
     (Join-Path $PSScriptRoot "MenuCommands.cs"),
     (Join-Path $PSScriptRoot "FalloutThemes.cs"),
+    (Join-Path $PSScriptRoot "VatsController.cs"),
     (Join-Path $PSScriptRoot "QuestRequirementsPatch.cs")
 ) -References $menuRefs -Output $menuDll
 
@@ -63,5 +64,9 @@ Invoke-Compile -Sources @(
 if ($Install) {
     Copy-Item -LiteralPath $mainDll -Destination (Join-Path $plugins 'FSAutoQuest.dll') -Force
     Copy-Item -LiteralPath $menuDll -Destination (Join-Path $plugins 'FSAutoQuestMenu.dll') -Force
+    $vatsDll = Join-Path $PSScriptRoot "..\Vault Accelerated Time System\VATS.dll"
+    if (Test-Path $vatsDll) {
+        Copy-Item -LiteralPath $vatsDll -Destination (Join-Path $plugins 'VATS.dll') -Force
+    }
     "Kuruldu: $plugins"
 }

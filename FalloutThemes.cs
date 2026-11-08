@@ -939,6 +939,8 @@ namespace FSAutoQuest.Menu
             if (fmt.Contains("/setstoragelimit") || fmt.Contains("/setitemlimit")) return "5000";
             if (fmt.Contains("/setincidentchance")) return "0";
             if (fmt.Contains("/gendweller") || fmt.Contains("/gencustomdweller") || fmt.Contains("/genuniquedweller")) return "legendary";
+            if (fmt.Contains("/vatsmult")) return "10";
+            if (fmt.Contains("/vatsanim")) return "3";
             return "100";
         }
 
@@ -954,6 +956,8 @@ namespace FSAutoQuest.Menu
             if (fmt.Contains("/setstimrad")) return new string[] { "100", "500", "2,000", "9,999" };
             if (fmt.Contains("/setstoragelimit") || fmt.Contains("/setitemlimit")) return new string[] { "500", "1,000", "5,000", "10,000" };
             if (fmt.Contains("/gendweller") || fmt.Contains("/gencustomdweller") || fmt.Contains("/genuniquedweller")) return new string[] { "common", "rare", "legendary" };
+            if (fmt.Contains("/vatsmult")) return new string[] { "2", "5", "10", "25", "50", "100" };
+            if (fmt.Contains("/vatsanim")) return new string[] { "1", "2", "3", "5" };
             return new string[] { "10", "50", "100", "500" };
         }
 

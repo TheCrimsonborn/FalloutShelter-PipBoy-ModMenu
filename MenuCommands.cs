@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using BepInEx;
 using CTDynamicModMenu.Commands;
+using FSAutoQuest.Vats;
 using UnityEngine;
 
 namespace FSAutoQuest.Menu
@@ -19,6 +20,13 @@ namespace FSAutoQuest.Menu
         private MaxLevelDwellersCommand _maxLevel;
         private LanguageToggleCommand _langToggle;
         private BypassQuestRequirementsCommand _bypassQuestReqs;
+        private VatsToggleBoostCommand _vatsBoost;
+        private VatsToggleWarpCommand _vatsWarp;
+        private VatsSetMultiplierCommand _vatsMult;
+        private VatsSetAnimSpeedCommand _vatsAnim;
+        private VatsAutoPauseIncidentsCommand _vatsPauseIncidents;
+        private VatsAutoPauseStrangerCommand _vatsPauseStranger;
+        private VatsToggleOverlayCommand _vatsOverlay;
         private bool _registered;
         private bool _translated;
         private float _nextTry;
@@ -65,11 +73,27 @@ namespace FSAutoQuest.Menu
             _maxLevel = new MaxLevelDwellersCommand();
             _langToggle = new LanguageToggleCommand();
             _bypassQuestReqs = new BypassQuestRequirementsCommand();
+            try
+            {
+                VatsController.Initialize(Config);
+                _vatsBoost = new VatsToggleBoostCommand();
+                _vatsWarp = new VatsToggleWarpCommand();
+                _vatsMult = new VatsSetMultiplierCommand();
+                _vatsAnim = new VatsSetAnimSpeedCommand();
+                _vatsPauseIncidents = new VatsAutoPauseIncidentsCommand();
+                _vatsPauseStranger = new VatsAutoPauseStrangerCommand();
+                _vatsOverlay = new VatsToggleOverlayCommand();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning("VATS baslatma hatasi: " + ex.Message);
+            }
             TryRegister();
         }
 
         private void Update()
         {
+            try { VatsController.TickUpdate(); } catch { }
             if (_registered && _translated) return;
             if (Time.unscaledTime < _nextTry) return;
             _nextTry = Time.unscaledTime + 1f;
@@ -99,6 +123,13 @@ namespace FSAutoQuest.Menu
                     menu.RegisterCommand(_maxLevel);
                     menu.RegisterCommand(_langToggle);
                     menu.RegisterCommand(_bypassQuestReqs);
+                    if (_vatsBoost != null) menu.RegisterCommand(_vatsBoost);
+                    if (_vatsWarp != null) menu.RegisterCommand(_vatsWarp);
+                    if (_vatsMult != null) menu.RegisterCommand(_vatsMult);
+                    if (_vatsAnim != null) menu.RegisterCommand(_vatsAnim);
+                    if (_vatsPauseIncidents != null) menu.RegisterCommand(_vatsPauseIncidents);
+                    if (_vatsPauseStranger != null) menu.RegisterCommand(_vatsPauseStranger);
+                    if (_vatsOverlay != null) menu.RegisterCommand(_vatsOverlay);
                     _registered = true;
                     Logger.LogInfo("FSAutoQuest komutlari mod menuye kaydedildi.");
                 }
@@ -534,6 +565,151 @@ namespace FSAutoQuest.Menu
         }
     }
 
+    /// <summary>Zaman hizlandirma (10x boost).</summary>
+    internal class VatsToggleBoostCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Zaman Hizlandirma (10x Boost)" : "Accelerate Time (10x Boost)"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Oyun ici zamani (uretim, egitim, hamilelik, crafting ve corak topraklar) 10 kat hizlandirir."
+            : "Speeds up game time (production, training, crafting, wasteland) by 10x."; } }
+        public override string Format { get { return "/vatsboost"; } }
+        public override string Category { get { return "V.A.T.S."; } }
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+        public override bool IsEnabled
+        {
+            get { return VatsController.IsBoostEnabled; }
+            set { VatsController.IsBoostEnabled = value; }
+        }
+        public override void Execute(CommandInput message) { }
+    }
+
+    /// <summary>Zaman bukme (50x hiper hiz).</summary>
+    internal class VatsToggleWarpCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Zaman Bukme (50x Isik Hizi)" : "Time Warp (50x Hyper Speed)"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Oyun ici zamani 50 kat maksimum hiza bukerek saatlik isleri saniyeler icinde bitirir."
+            : "Warps game time at 50x speed, completing multi-hour tasks in seconds."; } }
+        public override string Format { get { return "/vatswarp"; } }
+        public override string Category { get { return "V.A.T.S."; } }
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+        public override bool IsEnabled
+        {
+            get { return VatsController.IsTimeWarpEnabled; }
+            set { VatsController.IsTimeWarpEnabled = value; }
+        }
+        public override void Execute(CommandInput message) { }
+    }
+
+    /// <summary>Hiz carpanini ayarla.</summary>
+    internal class VatsSetMultiplierCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Hiz Carpani Belirle" : "Set Speed Multiplier"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Zaman hizlandirma carpanini belirler (2x - 100x)."
+            : "Sets custom time acceleration multiplier (2x - 100x)."; } }
+        public override string Format { get { return "/vatsmult <multiplier>"; } }
+        public override string Category { get { return "V.A.T.S."; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            if (message != null && message.Args != null && message.Args.Count > 0)
+            {
+                string raw = message.Args[0].Replace("x", "").Replace("X", "").Trim();
+                float val;
+                if (float.TryParse(raw, out val) && val > 0f)
+                {
+                    VatsController.SpeedMultiplier = Mathf.Clamp(val, 1f, 999f);
+                }
+            }
+        }
+    }
+
+    /// <summary>Animasyon hizini ayarla.</summary>
+    internal class VatsSetAnimSpeedCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Animasyon Hizini Belirle" : "Set Animation Speed"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Gorsel hareket ve animasyon akicilik hizini ayarlar (1x - 5x)."
+            : "Sets visual movement and animation rendering speed (1x - 5x)."; } }
+        public override string Format { get { return "/vatsanim <speed>"; } }
+        public override string Category { get { return "V.A.T.S."; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            if (message != null && message.Args != null && message.Args.Count > 0)
+            {
+                string raw = message.Args[0].Replace("x", "").Replace("X", "").Trim();
+                float val;
+                if (float.TryParse(raw, out val) && val > 0f)
+                {
+                    VatsController.AnimationSpeed = Mathf.Clamp(val, 1f, 10f);
+                }
+            }
+        }
+    }
+
+    /// <summary>Felaketlerde otomatik duraklat.</summary>
+    internal class VatsAutoPauseIncidentsCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Felaketlerde Duraklat" : "Auto-Pause on Incidents"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Yangin, akrep, olum pencesi veya akinci baskinlarinda zamani otomatik normale dondurur."
+            : "Automatically pauses/slows boost during fires, radscorpions, deathclaws, or raiders."; } }
+        public override string Format { get { return "/vatspauseincidents"; } }
+        public override string Category { get { return "V.A.T.S."; } }
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+        public override bool IsEnabled
+        {
+            get { return VatsController.AutoPauseIncidents; }
+            set { VatsController.AutoPauseIncidents = value; }
+        }
+        public override void Execute(CommandInput message) { }
+    }
+
+    /// <summary>Gizemli yabancida duraklat.</summary>
+    internal class VatsAutoPauseStrangerCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Gizemli Yabancida Duraklat" : "Auto-Pause on Stranger"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Gizemli Yabanci belirdiginde zamani aninda duraklatir, kapaklari kacirmanizi onler."
+            : "Pauses time acceleration when the Mysterious Stranger appears so you can tap him for caps."; } }
+        public override string Format { get { return "/vatspausestranger"; } }
+        public override string Category { get { return "V.A.T.S."; } }
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+        public override bool IsEnabled
+        {
+            get { return VatsController.AutoPauseStranger; }
+            set { VatsController.AutoPauseStranger = value; }
+        }
+        public override void Execute(CommandInput message) { }
+    }
+
+    /// <summary>Ekran bilgi gostergesi (Overlay).</summary>
+    internal class VatsToggleOverlayCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Ekran Bilgi Efekti (Overlay)" : "Screen Overlay (V.A.T.S.)"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Hizlandirma etkinken ekran kenarlarindaki CRT tarama cizgilerini ve gecen sure sayacini gosterir/gizler."
+            : "Toggles CRT static bands and elapsed time display while time is accelerated."; } }
+        public override string Format { get { return "/vatsoverlay"; } }
+        public override string Category { get { return "V.A.T.S."; } }
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+        public override bool IsEnabled
+        {
+            get { return VatsController.ShowOverlay; }
+            set { VatsController.ShowOverlay = value; }
+        }
+        public override void Execute(CommandInput message) { }
+    }
+
     /// <summary>
     /// Turkce ve Ingilizce ceviri sozlukleri.
     /// </summary>
@@ -553,7 +729,8 @@ namespace FSAutoQuest.Menu
             { "Settings", "Ayarlar" },
             { "Help", "Yardim" },
             { "FSAutoQuest", "Otomatik Gorev" },
-            { "Themes", "Temalar" }
+            { "Themes", "Temalar" },
+            { "V.A.T.S.", "V.A.T.S. (Zaman)" }
         };
 
         private static readonly Dictionary<string, string> ReverseCategories = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -567,6 +744,14 @@ namespace FSAutoQuest.Menu
             { "Bypass Quest Requirements", "Gorev Sartlarini Kaldir" },
             { "Auto Return to Vault", "Otomatik Kasaya Don" },
             { "Instant Return to Vault", "Aninda Kapiya Ulas" },
+            // V.A.T.S. (Zaman)
+            { "Accelerate Time (10x Boost)", "Zaman Hizlandirma (10x Boost)" },
+            { "Time Warp (50x Hyper Speed)", "Zaman Bukme (50x Isik Hizi)" },
+            { "Set Speed Multiplier", "Hiz Carpani Belirle" },
+            { "Set Animation Speed", "Animasyon Hizini Belirle" },
+            { "Auto-Pause on Incidents", "Felaketlerde Duraklat" },
+            { "Auto-Pause on Stranger", "Gizemli Yabancida Duraklat" },
+            { "Screen Overlay (V.A.T.S.)", "Ekran Bilgi Efekti (Overlay)" },
             { "No Rush Fail", "Hizlandirma Asla Basarisiz Olmasin" },
             { "Override Incident Chance", "Olay Ihtimalini Sabitle" },
             { "Set Incident Chance", "Olay Ihtimali Oranini Belirle" },
@@ -647,6 +832,14 @@ namespace FSAutoQuest.Menu
             { "Bypass Quest Requirements", "Seviye, silah, kiyafet ve SPECIAL sartlari olmadan tum gorevleri baslatmanizi saglar." },
             { "Auto Return to Vault", "Gorev bittiginde onay beklemeden kasaya doner. Kapaliysa 'Return to Vault' butonunu tiklamanizi bekler." },
             { "Instant Return to Vault", "Gorev bittiginde saatlerce yurume suresini beklemeden ekibi aninda siginak kapisina ulastirir." },
+            // V.A.T.S. (Zaman)
+            { "Accelerate Time (10x Boost)", "Oyun ici zamani (uretim, egitim, hamilelik, crafting ve corak topraklar) 10 kat hizlandirir." },
+            { "Time Warp (50x Hyper Speed)", "Oyun ici zamani 50 kat maksimum hiza bukerek saatlik isleri saniyeler icinde bitirir." },
+            { "Set Speed Multiplier", "Zaman hizlandirma carpanini belirler (2x - 100x)." },
+            { "Set Animation Speed", "Gorsel hareket ve animasyon akicilik hizini ayarlar (1x - 5x)." },
+            { "Auto-Pause on Incidents", "Yangin, akrep, olum pencesi veya akinci baskinlarinda zamani otomatik normale dondurur." },
+            { "Auto-Pause on Stranger", "Gizemli Yabanci belirdiginde zamani aninda duraklatir, kapaklari kacirmanizi onler." },
+            { "Screen Overlay (V.A.T.S.)", "Hizlandirma etkinken ekran kenarlarindaki CRT tarama cizgilerini ve gecen sure sayacini gosterir/gizler." },
             { "No Rush Fail", "Oda hizlandirmalarinda (Rush) yangin, akrep veya felaket cikmasini engeller." },
             { "Override Incident Chance", "Rastgele olaylarin (yangin, baskin vb.) cikma ihtimalini sabitler." },
             { "Set Incident Chance", "Olay ihtimali yuzdesini (0-100) ayarlar (/overrideincidentchance ile kullanilir)." },

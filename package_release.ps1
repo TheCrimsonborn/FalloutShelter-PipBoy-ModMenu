@@ -41,11 +41,12 @@ if (Test-Path (Join-Path $gameDir ".doorstop_version")) {
 }
 
 # Plugins
-$pluginDlls = @("CTDynamicModMenu.dll", "FSCheat.dll", "FSAutoQuest.dll", "FSAutoQuestMenu.dll")
+$pluginDlls = @("CTDynamicModMenu.dll", "FSCheat.dll", "FSAutoQuest.dll", "FSAutoQuestMenu.dll", "VATS.dll")
 foreach ($dll in $pluginDlls) {
     $srcLocal = Join-Path $scriptDir $dll
     $srcGame = Join-Path $gameDir "BepInEx\plugins\$dll"
-    $src = if (Test-Path $srcLocal) { $srcLocal } else { $srcGame }
+    $srcVats = Join-Path $scriptDir "..\Vault Accelerated Time System\$dll"
+    $src = if (Test-Path $srcLocal) { $srcLocal } elseif (Test-Path $srcVats) { $srcVats } else { $srcGame }
     if (Test-Path $src) {
         Copy-Item $src (Join-Path $tempFull "BepInEx\plugins\$dll") -Force
         Copy-Item $src (Join-Path $tempPlugins "BepInEx\plugins\$dll") -Force
@@ -89,6 +90,13 @@ Temel Mod Menusu Destegi: Toemmsen96 (CTDynamicModMenu & FSCheats)
 - GOREV SARTLARINI KALDIRMA (Bypass Quest Requirements):
   * Gorevlerin istedigi sakin seviyesi (ornegin Lv. 45), ozel silahlar (Gauss Rifle vb.),
     kiyafetler ve SPECIAL nitelik gereksinimlerini tamamen baypas ederek her goreve aninda katilmanizi saglar.
+
+- V.A.T.S. ZAMAN HIZLANDIRMA SISTEMI (Vault Accelerated Time System):
+  * Oyunun dahili zaman motorunu (TimeMgr ve Time.timeScale) 10x veya 50x hizlandirir.
+  * Uretim, egitim, hamilelikler, uretim atolyeleri ve corak toprak kesiflerini isik hizinda tamamlar.
+  * Akilli Otomatik Duraklatma (Smart Auto-Pause): Siginakta yangin/akrep/yagmaci felaketi ciktiginda veya Gizemli Yabanci belirdiginde zamani otomatik normale alir.
+  * CRT Ekran Efekti (Overlay): Gecen oyun suresini ve hiz carpanini gosteren retro bant efekti.
+  * Hem Mod Menusunden butonlarla, hem de kisayol tuslariyla (Ctrl+Alt, Shift+Alt vb.) tam uyumlu ve senkronize calisir.
 
 - PIP-BOY TERMINAL TASARIMI:
   * Yari saydam CRT terminal tasarimi, dinamik fare vurgulari (hover),
@@ -161,6 +169,13 @@ Base Framework: Toemmsen96 (CTDynamicModMenu & FSCheats)
 - BYPASS QUEST REQUIREMENTS:
   * Allows starting any wasteland quest without meeting dweller level requirements (e.g. Lv. 45),
     specific weapons (Gauss Rifle etc.), outfits, or SPECIAL stat thresholds.
+
+- V.A.T.S. TIME ACCELERATION ENGINE (Vault Accelerated Time System):
+  * Accelerates internal game clock and animations (10x boost or 50x hyper warp).
+  * Speeds up dweller training, room production, pregnancies, crafting, and wasteland exploration.
+  * Smart Auto-Pause: Automatically resets to normal vanilla speed during vault incidents (fires, scorpions, raiders) and when the Mysterious Stranger appears.
+  * Retro CRT Overlay: Displays real-time game clock elapsed counter and active multiplier.
+  * Works simultaneously via Mod Menu buttons or hotkeys (Ctrl+Alt, Shift+Alt, Left Ctrl) with synchronized state.
 
 - CRT PIP-BOY TERMINAL DESIGN:
   * Semi-transparent terminal aesthetic, dynamic interactive hover glows,
