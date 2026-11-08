@@ -401,7 +401,7 @@ namespace FSAutoQuest.Menu
             bool showPopup = trav.Field<bool>("showPopup").Value;
             if (showPopup)
             {
-                try { trav.Method("ShowPopupForUserInput").GetValue(); } catch { }
+                try { DrawThemedPopup(menu, trav, S, SI, theme); } catch { }
             }
 
             bool showKeybindPicker = trav.Field<bool>("showKeybindPicker").Value;
@@ -655,7 +655,7 @@ namespace FSAutoQuest.Menu
             }
             else
             {
-                DrawCommandsGrid(contentBoxRect, selectedCategory, registeredCommands, S, SI, theme);
+                DrawCommandsGrid(contentBoxRect, selectedCategory, registeredCommands, S, SI, theme, menu, trav);
             }
 
             curY += contentHeight + S(8f);
@@ -797,7 +797,7 @@ namespace FSAutoQuest.Menu
             }
         }
 
-        private static void DrawCommandsGrid(Rect area, string category, List<CustomCommand> allCommands, Func<float, float> S, Func<float, int> SI, FalloutTheme theme)
+        private static void DrawCommandsGrid(Rect area, string category, List<CustomCommand> allCommands, Func<float, float> S, Func<float, int> SI, FalloutTheme theme, global::CTDynamicModMenu.CTDynamicModMenu menu, Traverse trav)
         {
             var cmds = new List<CustomCommand>();
             if (allCommands != null)
@@ -886,18 +886,251 @@ namespace FSAutoQuest.Menu
 
                 if (GUI.Button(bRect, fullLabel, cmdStyle))
                 {
-                    if (cmd.IsToggle)
+                    try
                     {
-                        cmd.IsEnabled = !cmd.IsEnabled;
+                        string format = cmd.Format ?? "";
+                        string[] formatParts = format.Split(' ');
+
+                        if (formatParts.Length > 1)
+                        {
+                            // Komut parametre bekliyor (Örn: /nuka <amount>, /setres <amount>, /setboxes <amount>)
+                            trav.Field("showMenu").SetValue(false);
+                            trav.Field("showPopup").SetValue(true);
+                            trav.Field("selectedCommand").SetValue(cmd);
+                            trav.Field("userInput").SetValue(GetSmartDefault(cmd));
+                        }
+                        else if (cmd.IsToggle)
+                        {
+                            cmd.IsEnabled = !cmd.IsEnabled;
+                            try { cmd.SaveConfig(); } catch { }
+                            cmd.Execute(new CommandInput());
+                        }
+                        else
+                        {
+                            cmd.Execute(new CommandInput());
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        cmd.Execute(new CommandInput());
+                        if (MenuPlugin.Log != null)
+                            MenuPlugin.Log.LogWarning("Komut calistirma hatasi (" + cmd.Name + "): " + ex.Message);
                     }
                 }
             }
 
             GUI.EndScrollView();
+        }
+
+        public static string GetSmartDefault(CustomCommand cmd)
+        {
+            if (cmd == null || string.IsNullOrEmpty(cmd.Format)) return "100";
+            string fmt = cmd.Format.ToLowerInvariant();
+            if (fmt.Contains("/nuka")) return "999999";
+            if (fmt.Contains("/quantum")) return "9999";
+            if (fmt.Contains("/setres")) return "9999";
+            if (fmt.Contains("/setboxes")) return "50";
+            if (fmt.Contains("/setmrhandy")) return "10";
+            if (fmt.Contains("/setpetboxes")) return "25";
+            if (fmt.Contains("/setstarterpack")) return "10";
+            if (fmt.Contains("/setcurie") || fmt.Contains("/setvictor") || fmt.Contains("/setpredefinedpack")) return "10";
+            if (fmt.Contains("/spinres")) return "500";
+            if (fmt.Contains("/ultracite")) return "9999";
+            if (fmt.Contains("/setstimrad")) return "9999";
+            if (fmt.Contains("/setstoragelimit") || fmt.Contains("/setitemlimit")) return "5000";
+            if (fmt.Contains("/setincidentchance")) return "0";
+            if (fmt.Contains("/gendweller") || fmt.Contains("/gencustomdweller") || fmt.Contains("/genuniquedweller")) return "legendary";
+            return "100";
+        }
+
+        private static string[] GetPresetsForCommand(CustomCommand cmd)
+        {
+            if (cmd == null || string.IsNullOrEmpty(cmd.Format)) return null;
+            string fmt = cmd.Format.ToLowerInvariant();
+            if (fmt.Contains("/nuka")) return new string[] { "10,000", "50,000", "250,000", "999,999" };
+            if (fmt.Contains("/quantum")) return new string[] { "100", "500", "2,000", "9,999" };
+            if (fmt.Contains("/setres")) return new string[] { "1,000", "5,000", "9,999", "99,999" };
+            if (fmt.Contains("/setboxes") || fmt.Contains("/setpetboxes")) return new string[] { "10", "25", "50", "100" };
+            if (fmt.Contains("/setmrhandy") || fmt.Contains("/setstarterpack") || fmt.Contains("/setcurie") || fmt.Contains("/setvictor") || fmt.Contains("/setpredefinedpack") || fmt.Contains("/setquantumbox")) return new string[] { "5", "10", "25", "50" };
+            if (fmt.Contains("/setstimrad")) return new string[] { "100", "500", "2,000", "9,999" };
+            if (fmt.Contains("/setstoragelimit") || fmt.Contains("/setitemlimit")) return new string[] { "500", "1,000", "5,000", "10,000" };
+            if (fmt.Contains("/gendweller") || fmt.Contains("/gencustomdweller") || fmt.Contains("/genuniquedweller")) return new string[] { "common", "rare", "legendary" };
+            return new string[] { "10", "50", "100", "500" };
+        }
+
+        public static void DrawThemedPopup(global::CTDynamicModMenu.CTDynamicModMenu menu, Traverse trav, Func<float, float> S, Func<float, int> SI, FalloutTheme theme)
+        {
+            menu.EnableCursor();
+            var selectedCmd = trav.Field<CustomCommand>("selectedCommand").Value;
+            if (selectedCmd == null)
+            {
+                trav.Field("showPopup").SetValue(false);
+                trav.Field("showMenu").SetValue(true);
+                return;
+            }
+
+            float popupWidth = S(480f);
+            float popupHeight = S(270f);
+            float popupX = (Screen.width - popupWidth) / 2f;
+            float popupY = (Screen.height - popupHeight) / 2f;
+            Rect popupRect = new Rect(popupX, popupY, popupWidth, popupHeight);
+
+            // Ana CRT arka plan ve parlak cerceve
+            DrawBoxWithBorder(popupRect, theme.HeaderBgColor, theme.BorderColor, S(2.5f));
+
+            // Baslik Barı
+            float headerH = S(32f);
+            Rect headerRect = new Rect(popupX, popupY, popupWidth, headerH);
+            DrawRect(headerRect, theme.BgColor);
+            DrawRect(new Rect(popupX, popupY + headerH - S(1.5f), popupWidth, S(1.5f)), theme.BorderColor);
+
+            var titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = SI(13f),
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft
+            };
+            titleStyle.normal.textColor = theme.AccentColor;
+            string titleText = MenuPlugin.IsTurkish ? "ROBCO PIP-BOY 3000 // DEĞER BELİRLE" : "ROBCO PIP-BOY 3000 // SET VALUE";
+            GUI.Label(new Rect(popupX + S(12f), popupY + S(4f), popupWidth - S(24f), S(24f)), titleText, titleStyle);
+
+            // Komut Adi ve Bilgilendirme
+            var nameStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = SI(13f),
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            nameStyle.normal.textColor = Color.white;
+            GUI.Label(new Rect(popupX + S(10f), popupY + S(42f), popupWidth - S(20f), S(24f)), selectedCmd.Name, nameStyle);
+
+            var hintStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = SI(11f),
+                fontStyle = FontStyle.Italic,
+                alignment = TextAnchor.MiddleCenter
+            };
+            hintStyle.normal.textColor = theme.TextColor * 0.9f;
+            string hintText = MenuPlugin.IsTurkish
+                ? "Miktar girin veya aşağıdaki hızlı butonlardan birini seçin:"
+                : "Enter amount or select one of the quick presets below:";
+            GUI.Label(new Rect(popupX + S(10f), popupY + S(66f), popupWidth - S(20f), S(20f)), hintText, hintStyle);
+
+            // Metin Kutusu (Input Field)
+            string curInput = trav.Field<string>("userInput").Value ?? "";
+            Rect inputRect = new Rect(popupX + S(50f), popupY + S(92f), popupWidth - S(100f), S(34f));
+            DrawBoxWithBorder(inputRect, theme.ButtonBg, theme.AccentColor, S(1.5f));
+
+            var tfStyle = new GUIStyle(GUI.skin.textField)
+            {
+                fontSize = SI(14f),
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            tfStyle.normal.textColor = theme.AccentColor;
+            curInput = GUI.TextField(new Rect(inputRect.x + S(4f), inputRect.y + S(2f), inputRect.width - S(8f), inputRect.height - S(4f)), curInput, tfStyle);
+            trav.Field("userInput").SetValue(curInput);
+
+            // Hizli Secenek Butonlari (Presets)
+            string[] presets = GetPresetsForCommand(selectedCmd);
+            if (presets != null && presets.Length > 0)
+            {
+                float presetY = popupY + S(136f);
+                float pPad = S(6f);
+                float pWidth = (popupWidth - S(60f) - (presets.Length - 1) * pPad) / presets.Length;
+                float pHeight = S(28f);
+
+                for (int i = 0; i < presets.Length; i++)
+                {
+                    float pX = popupX + S(30f) + i * (pWidth + pPad);
+                    Rect pRect = new Rect(pX, presetY, pWidth, pHeight);
+                    bool isPHover = pRect.Contains(Event.current.mousePosition);
+
+                    DrawBoxWithBorder(pRect, isPHover ? theme.ButtonHover : theme.ButtonBg, isPHover ? theme.AccentColor : theme.BorderColor * 0.5f, S(1f));
+
+                    var pStyle = new GUIStyle(GUI.skin.label)
+                    {
+                        fontSize = SI(11f),
+                        fontStyle = FontStyle.Bold,
+                        alignment = TextAnchor.MiddleCenter
+                    };
+                    pStyle.normal.textColor = isPHover ? theme.AccentColor : theme.TextColor;
+
+                    if (GUI.Button(pRect, presets[i], pStyle))
+                    {
+                        string raw = presets[i].Replace(",", "").Replace(".", "").Trim();
+                        trav.Field("userInput").SetValue(raw);
+                    }
+                }
+            }
+
+            // Alt Butonlar: Iptal ve Onayla
+            float btnY = popupY + popupHeight - S(52f);
+            float btnW = (popupWidth - S(70f)) / 2f;
+            float btnH = S(38f);
+
+            // IPTAL BUTONU
+            Rect cancelRect = new Rect(popupX + S(25f), btnY, btnW, btnH);
+            bool isCancelHover = cancelRect.Contains(Event.current.mousePosition);
+            DrawBoxWithBorder(cancelRect, isCancelHover ? new Color(theme.ToggleOff.r, theme.ToggleOff.g, theme.ToggleOff.b, 0.35f) : theme.ButtonBg,
+                isCancelHover ? theme.ToggleOff : theme.BorderColor * 0.7f, isCancelHover ? S(2f) : S(1.2f));
+
+            var cancelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = SI(12.5f),
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            cancelStyle.normal.textColor = isCancelHover ? Color.white : theme.ToggleOff;
+            string cancelLabel = MenuPlugin.IsTurkish ? "<b>✕ İPTAL</b>" : "<b>✕ CANCEL</b>";
+
+            if (GUI.Button(cancelRect, cancelLabel, cancelStyle))
+            {
+                trav.Field("showPopup").SetValue(false);
+                trav.Field("showMenu").SetValue(true);
+                trav.Field("selectedCommand").SetValue(null);
+                trav.Field("userInput").SetValue("");
+            }
+
+            // ONAYLA BUTONU
+            Rect confirmRect = new Rect(popupX + S(45f) + btnW, btnY, btnW, btnH);
+            bool isConfirmHover = confirmRect.Contains(Event.current.mousePosition);
+            DrawBoxWithBorder(confirmRect, isConfirmHover ? Color.Lerp(theme.ButtonHover, theme.ToggleOn, 0.45f) : Color.Lerp(theme.ButtonBg, theme.ToggleOn, 0.22f),
+                isConfirmHover ? Color.white : theme.ToggleOn, isConfirmHover ? S(2f) : S(1.5f));
+
+            var confirmStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = SI(12.5f),
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            confirmStyle.normal.textColor = isConfirmHover ? Color.white : theme.ToggleOn;
+            string confirmLabel = MenuPlugin.IsTurkish ? "<b>✔ ONAYLA</b>" : "<b>✔ CONFIRM</b>";
+
+            if (GUI.Button(confirmRect, confirmLabel, confirmStyle))
+            {
+                try
+                {
+                    string val = (curInput ?? "").Replace(",", "").Replace(".", "").Trim();
+                    if (string.IsNullOrEmpty(val))
+                    {
+                        val = GetSmartDefault(selectedCmd);
+                    }
+                    string cmdPrefix = selectedCmd.Format.Split(' ')[0];
+                    string full = cmdPrefix + " " + val;
+                    selectedCmd.Execute(CommandInput.Parse(full));
+                    trav.Field("lastDisplayedMessage").SetValue(selectedCmd.Name + " (" + val + ") uygulandi.");
+                }
+                catch (Exception ex)
+                {
+                    if (MenuPlugin.Log != null)
+                        MenuPlugin.Log.LogWarning("Parametre komut hatasi: " + ex.Message);
+                }
+
+                trav.Field("showPopup").SetValue(false);
+                trav.Field("showMenu").SetValue(true);
+                trav.Field("selectedCommand").SetValue(null);
+                trav.Field("userInput").SetValue("");
+            }
         }
     }
 

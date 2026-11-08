@@ -26,15 +26,32 @@ namespace FSAutoQuest.Menu
 
         internal static bool IsTurkish = true;
         internal static MenuPlugin Instance;
+        internal static BepInEx.Logging.ManualLogSource Log;
 
         private void Awake()
         {
             Instance = this;
+            Log = Logger;
             try
             {
                 FalloutThemeManager.Initialize(Paths.ConfigPath);
                 var harmony = new HarmonyLib.Harmony("com.halil.fsautoquest.theme");
                 harmony.PatchAll(typeof(MenuPlugin).Assembly);
+                try
+                {
+                    var patchesType = Type.GetType("FSCheat.Patches, FSCheat");
+                    if (patchesType != null)
+                    {
+                        var targetMethod = patchesType.GetMethod("CyDecryptPostfix", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                        var prefixMethod = typeof(MenuPlugin).GetMethod("CyDecryptPostfixPrefix", BindingFlags.Static | BindingFlags.NonPublic);
+                        if (targetMethod != null && prefixMethod != null)
+                        {
+                            harmony.Patch(targetMethod, new HarmonyLib.HarmonyMethod(prefixMethod));
+                            Logger.LogInfo("FSCheat save log spam engellendi (Performans optimize edildi).");
+                        }
+                    }
+                }
+                catch { }
                 Logger.LogInfo("Fallout Mod Menu temalari ve Harmony yamasi yuklendi.");
             }
             catch (Exception ex)
@@ -169,6 +186,24 @@ namespace FSAutoQuest.Menu
                 Instance.Logger.LogInfo("Mod menu dili degistirildi: " + (IsTurkish ? "Turkce" : "English"));
             }
         }
+
+        private static bool CyDecryptPostfixPrefix(ref string passphrase)
+        {
+            try
+            {
+                var patchesType = Type.GetType("FSCheat.Patches, FSCheat");
+                if (patchesType != null)
+                {
+                    var field = patchesType.GetField("decryptPassphrase", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (field != null)
+                    {
+                        field.SetValue(null, passphrase);
+                    }
+                }
+            }
+            catch { }
+            return false;
+        }
     }
 
     /// <summary>
@@ -236,6 +271,18 @@ namespace FSAutoQuest.Menu
         public override bool IsToggle { get { return _inner.IsToggle; } }
         public override bool HasConfig { get { return _inner.HasConfig; } }
         public override bool PersistConfig { get { return _inner.PersistConfig; } }
+
+        public new void SaveConfig()
+        {
+            if (_inner != null)
+            {
+                _inner.SaveConfig();
+            }
+            else
+            {
+                base.SaveConfig();
+            }
+        }
 
         public override bool IsEnabled
         {
