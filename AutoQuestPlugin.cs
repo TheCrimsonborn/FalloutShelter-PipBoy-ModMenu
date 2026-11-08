@@ -39,6 +39,7 @@ namespace FSAutoQuest
         internal static ConfigEntry<float> CfgInterval;
         internal static ConfigEntry<bool> CfgVerbose;
         internal static ConfigEntry<bool> CfgAutoKillEnemies;
+        internal static ConfigEntry<bool> CfgAutoCollectRewards;
 
         internal static ManualLogSource Log;
 
@@ -150,6 +151,21 @@ namespace FSAutoQuest
                 Log.LogInfo("Dusmanlari Otomatik Oldur: " + (value ? "ACIK" : "KAPALI"));
         }
 
+        public static bool IsAutoCollectRewardsEnabled
+        {
+            get { return CfgAutoCollectRewards == null || CfgAutoCollectRewards.Value; }
+            set { SetAutoCollectRewardsEnabled(value); }
+        }
+
+        public static void SetAutoCollectRewardsEnabled(bool value)
+        {
+            if (CfgAutoCollectRewards == null) return;
+            bool changed = CfgAutoCollectRewards.Value != value;
+            CfgAutoCollectRewards.Value = value;
+            if (changed && Log != null)
+                Log.LogInfo("Tarif/Odul Otomatik Topla: " + (value ? "ACIK" : "KAPALI"));
+        }
+
         /// <summary>Mod menuden "Sakinleri Max Seviye Yap" icin.</summary>
         public static void QueueMaxLevelDwellers()
         {
@@ -183,6 +199,8 @@ namespace FSAutoQuest
                 "Gorev bittiginde saatlerce yurume suresini beklemeden ekibi aninda siginak kapisina ulastirir.");
             CfgAutoKillEnemies = Config.Bind("Genel", "DusmanlariOldur", true,
                 "Gorevdeki tum dusman NPC'leri otomatik oldur. (Dost ve diyalog NPC'lerine asla dokunmaz)");
+            CfgAutoCollectRewards = Config.Bind("Genel", "OtomatikOdulTopla", true,
+                "Gorev ve kesif sonrasi cikan tarif parcasi (Recipe Fragment), esya ve odul pencerelerini otomatik toplayip kapatir.");
             CfgAutoRevive = Config.Bind("Genel", "OtomatikCanlandir", true,
                 "Gorevde olen sakinleri otomatik canlandir.");
             CfgRefill = Config.Bind("Sarf", "SarfMalzemeTamamla", true,
@@ -207,6 +225,7 @@ namespace FSAutoQuest
             {
                 HandleHotkeys();
                 ProcessLevelQueue();
+                ProcessRewardWindows();
 
                 if (!CfgEnabled.Value) return;
                 if (Time.timeScale <= 0f) return;
@@ -762,7 +781,143 @@ namespace FSAutoQuest
             }
         }
 
-                private void KillRoomEnemies(object room)
+                        private float _nextWindowCollectTime;
+
+        private void ProcessRewardWindows()
+        {
+            if (!IsEnabled || CfgAutoCollectRewards == null || !CfgAutoCollectRewards.Value) return;
+            if (Time.unscaledTime < _nextWindowCollectTime) return;
+            _nextWindowCollectTime = Time.unscaledTime + 0.35f;
+
+            try
+            {
+                var vgm = Singleton("VaultGUIManager");
+
+                // 1. Theme Recipe Loot Window (Tarif Parcalari, ornegin Minutemen Living Quarters)
+                object themeWin = vgm != null ? M(vgm, "m_themeRecipeLootWindow") : null;
+                if (themeWin == null)
+                {
+                    var tType = FindType("ThemeRecipeLootWindow");
+                    if (tType != null) themeWin = UnityEngine.Object.FindObjectOfType(tType);
+                }
+
+                if (themeWin != null)
+                {
+                    bool isThemeActive = false;
+                    var winObj = M(themeWin, "m_window");
+                    if (winObj != null)
+                    {
+                        try { isThemeActive = Truthy(Call(winObj, "IsActive")); } catch { }
+                    }
+                    if (!isThemeActive)
+                    {
+                        var comp = themeWin as UnityEngine.Component;
+                        if (comp != null && comp.gameObject.activeInHierarchy) isThemeActive = true;
+                    }
+
+                    if (isThemeActive)
+                    {
+                        bool allRevealed = false;
+                        try { allRevealed = Truthy(Call(themeWin, "HasAllPartsRevealed")); } catch { }
+
+                        if (!allRevealed)
+                        {
+                            try { Call(themeWin, "Collect"); } catch { }
+                        }
+                        else
+                        {
+                            try { Call(themeWin, "Close"); } catch { }
+                        }
+                    }
+                }
+
+                // 2. Normal Recipe Loot Window (Silah / Kiyafet Tarif Parcalari)
+                object recipeWin = vgm != null ? M(vgm, "m_recipeLootWindow") : null;
+                if (recipeWin == null)
+                {
+                    var rType = FindType("RecipeLootWindow");
+                    if (rType != null) recipeWin = UnityEngine.Object.FindObjectOfType(rType);
+                }
+
+                if (recipeWin != null)
+                {
+                    bool isRecipeActive = false;
+                    var rWinObj = M(recipeWin, "m_window");
+                    if (rWinObj != null)
+                    {
+                        try { isRecipeActive = Truthy(Call(rWinObj, "IsActive")); } catch { }
+                    }
+                    if (!isRecipeActive)
+                    {
+                        var comp = recipeWin as UnityEngine.Component;
+                        if (comp != null && comp.gameObject.activeInHierarchy) isRecipeActive = true;
+                    }
+
+                    if (isRecipeActive)
+                    {
+                        try { Call(recipeWin, "InputClose"); } catch { }
+                        try { Call(recipeWin, "AttemptClose"); } catch { }
+                    }
+                }
+
+                // 3. Lunchbox Collected Window (Odule bagli Lunchbox Kutulari)
+                object lbWin = vgm != null ? M(vgm, "m_LunchBoxCollectedWindow") : null;
+                if (lbWin == null)
+                {
+                    var lbType = FindType("LunchBoxCollectedWindow");
+                    if (lbType != null) lbWin = UnityEngine.Object.FindObjectOfType(lbType);
+                }
+
+                if (lbWin != null)
+                {
+                    bool isLbActive = false;
+                    var lbWinObj = M(lbWin, "m_myWindow");
+                    if (lbWinObj != null)
+                    {
+                        try { isLbActive = Truthy(Call(lbWinObj, "IsActive")); } catch { }
+                    }
+                    if (!isLbActive)
+                    {
+                        var comp = lbWin as UnityEngine.Component;
+                        if (comp != null && comp.gameObject.activeInHierarchy) isLbActive = true;
+                    }
+
+                    if (isLbActive)
+                    {
+                        try { Call(lbWin, "CloseWithButton"); } catch { }
+                    }
+                }
+
+                // 4. Arrival Window (Gorevden / Kesiften donen ekibin karsilama ekrani)
+                object arrWin = vgm != null ? M(vgm, "m_arrivalWindow") : null;
+                if (arrWin == null)
+                {
+                    var aType = FindType("ArrivalWindow");
+                    if (aType != null) arrWin = UnityEngine.Object.FindObjectOfType(aType);
+                }
+
+                if (arrWin != null)
+                {
+                    bool isArrOpen = false;
+                    try { isArrOpen = Truthy(M(arrWin, "IsOpen")); } catch { }
+                    if (isArrOpen)
+                    {
+                        try
+                        {
+                            Call(arrWin, "OnClaimPressed");
+                            Call(arrWin, "Close");
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogV("ProcessRewardWindows hatasi: " + Inner(ex).Message);
+            }
+        }
+
+        private void KillRoomEnemies(object room)
         {
             if (room == null) return;
             try

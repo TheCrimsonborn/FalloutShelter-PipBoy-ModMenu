@@ -21,6 +21,7 @@ namespace FSAutoQuest.Menu
         private LanguageToggleCommand _langToggle;
         private BypassQuestRequirementsCommand _bypassQuestReqs;
         private AutoKillEnemiesToggleCommand _autoKill;
+        private AutoCollectRewardsToggleCommand _autoCollect;
         private VatsToggleBoostCommand _vatsBoost;
         private VatsToggleWarpCommand _vatsWarp;
         private VatsSetMultiplierCommand _vatsMult;
@@ -94,6 +95,7 @@ namespace FSAutoQuest.Menu
             _langToggle = new LanguageToggleCommand();
             _bypassQuestReqs = new BypassQuestRequirementsCommand();
             _autoKill = new AutoKillEnemiesToggleCommand();
+            _autoCollect = new AutoCollectRewardsToggleCommand();
             try
             {
                 VatsController.Initialize(Config);
@@ -146,6 +148,7 @@ namespace FSAutoQuest.Menu
                     menu.RegisterCommand(_langToggle);
                     menu.RegisterCommand(_bypassQuestReqs);
                     menu.RegisterCommand(_autoKill);
+                    menu.RegisterCommand(_autoCollect);
                     if (_vatsBoost != null) menu.RegisterCommand(_vatsBoost);
                     if (_vatsWarp != null) menu.RegisterCommand(_vatsWarp);
                     if (_vatsMult != null) menu.RegisterCommand(_vatsMult);
@@ -561,6 +564,39 @@ namespace FSAutoQuest.Menu
 
     /// <summary>Gorevlerin seviye, silah, kiyafet ve SPECIAL sartlarini kaldirir.</summary>
         /// <summary>Gorevdeki tum dusmanlari otomatik oldurur (Dost/diyalog NPC'lerine dokunmaz).</summary>
+        /// <summary>Gorev ve kesif sonrasi cikan tarif parcasi ve odul pencerelerini otomatik toplar.</summary>
+    internal class AutoCollectRewardsToggleCommand : CustomCommand
+    {
+        public override string Name
+        {
+            get { return MenuPlugin.IsTurkish ? "Tarif / Odul Otomatik Topla" : "Auto-Collect Rewards & Recipes"; }
+        }
+        public override string Description
+        {
+            get
+            {
+                return MenuPlugin.IsTurkish
+                    ? "Gorev veya kesif sonrasi cikan tarif parcasi (Recipe Fragment), esya ve kutlama pencerelerini otomatik toplayip kapatir."
+                    : "Automatically claims and dismisses post-quest recipe fragment, loot, and reward popup windows.";
+            }
+        }
+        public override string Format { get { return "/autocollect"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Otomatik Gorev" : "FSAutoQuest"; } }
+
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+
+        public override bool IsEnabled
+        {
+            get { return AutoQuestPlugin.IsAutoCollectRewardsEnabled; }
+            set { AutoQuestPlugin.SetAutoCollectRewardsEnabled(value); }
+        }
+
+        public override void Execute(CommandInput message)
+        {
+        }
+    }
+
     internal class AutoKillEnemiesToggleCommand : CustomCommand
     {
         public override string Name
