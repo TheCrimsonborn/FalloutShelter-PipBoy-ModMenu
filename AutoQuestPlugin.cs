@@ -947,7 +947,7 @@ namespace FSAutoQuest
 
         // ------------------------------------------------------------ reflection helpers
         private const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-        private const BindingFlags SFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+        private const BindingFlags SFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy;
         private static readonly object[] EmptyArgs = new object[0];
         private static readonly Dictionary<string, Type> TypeCache = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
 
@@ -1174,17 +1174,25 @@ namespace FSAutoQuest
             var bt = t;
             while (bt != null)
             {
+                // 1. Önce IsInstanceValid kontrolü yap (MonoSingleton<T> için).
+                // Eğer false ise sahnede obje yoktur; Instance çağırmak Unity'nin
+                // "cant find a gameobject of instance..." uyarısını loglamasına yol açar.
                 try
                 {
-                    var p = bt.GetProperty("Instance", SFlags);
-                    if (p != null)
+                    var validProp = bt.GetProperty("IsInstanceValid", SFlags);
+                    if (validProp != null)
                     {
-                        var v = p.GetValue(null, null);
-                        if (v != null) return v;
+                        var val = validProp.GetValue(null, null);
+                        if (val is bool && !(bool)val)
+                        {
+                            return null;
+                        }
                     }
                 }
                 catch { }
-                foreach (var fn in new[] { "m_instance", "_instance", "instance", "s_instance" })
+
+                // 2. Statik alanları doğrudan oku (m_Instance vs.)
+                foreach (var fn in new[] { "m_Instance", "m_instance", "_instance", "instance", "s_instance" })
                 {
                     try
                     {
@@ -1197,6 +1205,19 @@ namespace FSAutoQuest
                     }
                     catch { }
                 }
+
+                // 3. IsInstanceValid true ise veya bulunamadıysa Instance property'sini çağır
+                try
+                {
+                    var p = bt.GetProperty("Instance", SFlags);
+                    if (p != null)
+                    {
+                        var v = p.GetValue(null, null);
+                        if (v != null) return v;
+                    }
+                }
+                catch { }
+
                 bt = bt.BaseType;
             }
             return null;

@@ -33,6 +33,9 @@ Copy-Item (Join-Path $gameDir "BepInEx\core\*") (Join-Path $tempFull "BepInEx\co
 # Injector & Config
 Copy-Item (Join-Path $gameDir "winhttp.dll") (Join-Path $tempFull "winhttp.dll") -Force
 Copy-Item (Join-Path $gameDir "doorstop_config.ini") (Join-Path $tempFull "doorstop_config.ini") -Force
+if (Test-Path (Join-Path $gameDir "BepInEx\config")) {
+    Copy-Item (Join-Path $gameDir "BepInEx\config") (Join-Path $tempFull "BepInEx") -Recurse -Force
+}
 if (Test-Path (Join-Path $gameDir ".doorstop_version")) {
     Copy-Item (Join-Path $gameDir ".doorstop_version") (Join-Path $tempFull ".doorstop_version") -Force
 }
