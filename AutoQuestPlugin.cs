@@ -31,6 +31,7 @@ namespace FSAutoQuest
         internal static ConfigEntry<bool> CfgAutoQuest;
         internal static ConfigEntry<bool> CfgAutoHeal;
         internal static ConfigEntry<bool> CfgAutoReturn;
+        public static ConfigEntry<bool> CfgInstantReturn;
         internal static ConfigEntry<bool> CfgRefill;
         internal static ConfigEntry<bool> CfgAutoRevive;
         internal static ConfigEntry<int> CfgStimpak;
@@ -118,6 +119,21 @@ namespace FSAutoQuest
                 Log.LogInfo("Otomatik Kasaya Donus: " + (value ? "ACIK" : "KAPALI"));
         }
 
+        public static bool IsInstantReturnEnabled
+        {
+            get { return CfgInstantReturn != null && CfgInstantReturn.Value; }
+            set { SetInstantReturnEnabled(value); }
+        }
+
+        public static void SetInstantReturnEnabled(bool value)
+        {
+            if (CfgInstantReturn == null) return;
+            bool changed = CfgInstantReturn.Value != value;
+            CfgInstantReturn.Value = value;
+            if (changed && Log != null)
+                Log.LogInfo("Aninda Kapiya Ulas: " + (value ? "ACIK" : "KAPALI"));
+        }
+
         /// <summary>Mod menuden "Sakinleri Max Seviye Yap" icin.</summary>
         public static void QueueMaxLevelDwellers()
         {
@@ -147,8 +163,10 @@ namespace FSAutoQuest
                 "Gorev sirasinda sakinleri Stimpak/RadAway ile otomatik iyilestir.");
             CfgAutoReturn = Config.Bind("Genel", "KasaDonusu", false,
                 "Gorev basarili olunca otomatik olarak kasaya don. (Kapaliysa kullanicinin Return to Vault butonuna basmasini bekler)");
-            CfgAutoRevive = Config.Bind("Genel", "OtomatikCanlandir", false,
-                "Gorevde olen sakinleri otomatik canlandir (deneysel).");
+            CfgInstantReturn = Config.Bind("Genel", "AnindaKapiyaUlas", true,
+                "Gorev bittiginde saatlerce yurume suresini beklemeden ekibi aninda siginak kapisina ulastirir.");
+            CfgAutoRevive = Config.Bind("Genel", "OtomatikCanlandir", true,
+                "Gorevde olen sakinleri otomatik canlandir.");
             CfgRefill = Config.Bind("Sarf", "SarfMalzemeTamamla", true,
                 "Gorev sirasinda Stimpak/RadAway biterse tekrar doldur.");
             CfgStimpak = Config.Bind("Sarf", "StimpakAdedi", 9999,
@@ -332,6 +350,39 @@ namespace FSAutoQuest
         private void TickVault()
         {
             TryRegisterCompletion();
+
+            if (CfgInstantReturn != null && CfgInstantReturn.Value)
+            {
+                try
+                {
+                    var wasteland = Singleton("Wasteland");
+                    if (wasteland != null)
+                    {
+                        var teams = M(wasteland, "Teams") as IList;
+                        if (teams != null)
+                        {
+                            foreach (var t in teams)
+                            {
+                                if (t == null) continue;
+                                int status = Convert.ToInt32(M(t, "m_eStatus"));
+                                if (status == 2) // ReturningToVault
+                                {
+                                    bool isQuest = Truthy(Call(t, "IsQuest"));
+                                    if (isQuest)
+                                    {
+                                        Call(t, "SkipReturningTime");
+                                        Logger.LogInfo("Gorev donus yolculugu tamamlandi, sakinler siginak kapisina ulasti.");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogV("Instant return hatasi: " + Inner(ex).Message);
+                }
+            }
 
             if (!CfgRefill.Value) return;
             if (Time.time < _nextRefillTime) return;
@@ -659,16 +710,31 @@ namespace FSAutoQuest
                 LogV("Ceset loot toplama hatasi: " + Inner(ex).Message);
             }
 
-            // 4. Oda tamamlama ödüllerini topla
+            // 4. Oda tamamlama ödüllerini doğrudan ve eksiksiz topla (coroutine gecikmesi olmadan)
             try
             {
-                if (Truthy(M(room, "HasCompletionRoomLoot")))
+                var qdm = Singleton("QuestDataManager");
+                var uo = room as UnityEngine.Component;
+                var tr = uo != null ? uo.transform : null;
+
+                var mainLoot = M(room, "m_roomCompletionLoot");
+                if (mainLoot != null && qdm != null)
                 {
-                    var coroutine = Call(room, "CollectCompletionRoomRewards");
-                    if (coroutine is IEnumerator)
+                    Call(qdm, "CollectLoot", mainLoot, tr);
+                    SetMember(room, "m_roomCompletionLoot", null);
+                }
+
+                var extraLoot = M(room, "m_extraRoomCompletionLoot") as IList;
+                if (extraLoot != null && qdm != null)
+                {
+                    foreach (var l in extraLoot)
                     {
-                        StartCoroutine((IEnumerator)coroutine);
+                        if (l != null)
+                        {
+                            Call(qdm, "CollectLoot", l, tr);
+                        }
                     }
+                    SetMember(room, "m_extraRoomCompletionLoot", null);
                 }
             }
             catch (Exception ex)
@@ -746,28 +812,40 @@ namespace FSAutoQuest
 
                 try
                 {
+                    // 1. Ölen sakin varsa anında canlandır
                     if (Truthy(M(d, "IsDead")))
                     {
-                        if (CfgAutoRevive.Value)
+                        try
                         {
                             Call(d, "ReviveInQuest");
-                            Logger.LogInfo("Sakin canlandirildi: " + RoomName(d));
+                            Logger.LogInfo("Sakin aninda canlandirildi: " + RoomName(d));
                         }
-                        continue;
+                        catch { }
                     }
 
+                    // 2. Canı ve radyasyonu maksimuma sabitle (Ölümsüzlük)
                     var dh = M(d, "Health");
-                    if (dh == null) continue;
+                    if (dh != null)
+                    {
+                        try
+                        {
+                            float maxHp = Convert.ToSingle(M(dh, "HealthMax"));
+                            if (maxHp > 0f)
+                            {
+                                SetMember(dh, "HealthValue", maxHp);
+                            }
+                            SetMember(dh, "RadiationValue", 0f);
+                        }
+                        catch { }
 
-                    if (Truthy(M(dh, "NeedStimpack")))
-                    {
-                        Call(dh, "UseStimpack");
-                        LogV("Stimpak kullanildi: " + RoomName(d));
-                    }
-                    if (Truthy(M(dh, "NeedRadaway")))
-                    {
-                        Call(dh, "UseRadAway");
-                        LogV("RadAway kullanildi: " + RoomName(d));
+                        if (Truthy(M(dh, "NeedStimpack")))
+                        {
+                            try { Call(dh, "UseStimpack"); } catch { }
+                        }
+                        if (Truthy(M(dh, "NeedRadaway")))
+                        {
+                            try { Call(dh, "UseRadAway"); } catch { }
+                        }
                     }
                 }
                 catch (Exception e)
