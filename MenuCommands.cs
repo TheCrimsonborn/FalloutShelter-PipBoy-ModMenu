@@ -33,13 +33,32 @@ namespace FSAutoQuest.Menu
         private bool _gaveUpLogged;
 
         internal static bool IsTurkish = true;
+        internal static BepInEx.Configuration.ConfigEntry<bool> CfgLanguageIsTurkish;
         internal static MenuPlugin Instance;
         internal static BepInEx.Logging.ManualLogSource Log;
+        private static FieldInfo _fPersist = null;
+        internal static void SetPersistentSettings(global::CTDynamicModMenu.CTDynamicModMenu menu, bool val)
+        {
+            if (menu == null) return;
+            try
+            {
+                if (_fPersist == null)
+                    _fPersist = typeof(global::CTDynamicModMenu.CTDynamicModMenu).GetField("persistentSettings", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                if (_fPersist != null) _fPersist.SetValue(menu, val);
+            }
+            catch { }
+        }
 
         private void Awake()
         {
             Instance = this;
             Log = Logger;
+            try
+            {
+                CfgLanguageIsTurkish = Config.Bind("Genel", "DilTurkce", true, "Mod menusu dili Turkce mi?");
+                IsTurkish = CfgLanguageIsTurkish.Value;
+            }
+            catch { }
             try
             {
                 FalloutThemeManager.Initialize(Paths.ConfigPath);
@@ -94,6 +113,7 @@ namespace FSAutoQuest.Menu
         private void Update()
         {
             try { VatsController.TickUpdate(); } catch { }
+            if (global::CTDynamicModMenu.CTDynamicModMenu.Instance != null) { SetPersistentSettings(global::CTDynamicModMenu.CTDynamicModMenu.Instance, true); }
             if (_registered && _translated) return;
             if (Time.unscaledTime < _nextTry) return;
             _nextTry = Time.unscaledTime + 1f;
@@ -157,12 +177,41 @@ namespace FSAutoQuest.Menu
                 var list = field.GetValue(menu) as List<CustomCommand>;
                 if (list == null || list.Count == 0) return;
 
+                if (menu != null) { SetPersistentSettings(menu, true); }
                 for (int i = 0; i < list.Count; i++)
                 {
                     var cmd = list[i];
-                    if (cmd is LocalizedCommand) continue;
+                    CustomCommand realCmd = (cmd is LocalizedCommand loc) ? loc.Inner : cmd;
 
-                    list[i] = new LocalizedCommand(cmd);
+                    // Yapilandirmayi geri yukle (Ingilizce orijinal anahtarla)
+                    if (realCmd != null && realCmd.IsToggle && menu != null && menu.Config != null)
+                    {
+                        try
+                        {
+                            string key = realCmd.Name + ": IsEnabled";
+                            var entry = menu.Config.Bind<bool>("Command Settings", key, realCmd.IsEnabled, "Whether the command is enabled");
+                            if (entry != null && entry.Value != realCmd.IsEnabled)
+                            {
+                                realCmd.IsEnabled = entry.Value;
+                            }
+                            if (cmd is LocalizedCommand locCmd)
+                            {
+                                locCmd.IsEnabled = realCmd.IsEnabled;
+                            }
+
+                            // Eger hile kayitli olarak aciksa motor icinde calisir duruma getir
+                            if (realCmd.IsEnabled)
+                            {
+                                try { realCmd.Execute(new CommandInput()); } catch { }
+                            }
+                        }
+                        catch { }
+                    }
+
+                    if (!(cmd is LocalizedCommand))
+                    {
+                        list[i] = new LocalizedCommand(cmd);
+                    }
                 }
 
                 // Baslangic kategorisi Settings ise ve Turkce aktifse Ayarlar yap
@@ -192,6 +241,11 @@ namespace FSAutoQuest.Menu
         internal static void ToggleLanguage()
         {
             IsTurkish = !IsTurkish;
+            if (CfgLanguageIsTurkish != null)
+            {
+                CfgLanguageIsTurkish.Value = IsTurkish;
+                if (Instance != null && Instance.Config != null) { try { Instance.Config.Save(); } catch { } }
+            }
             var menu = global::CTDynamicModMenu.CTDynamicModMenu.Instance;
             if (menu == null) return;
 
@@ -244,6 +298,8 @@ namespace FSAutoQuest.Menu
     {
         private readonly CustomCommand _inner;
         private readonly bool _isFsCheatMaxLevel;
+
+        public CustomCommand Inner { get { return _inner; } }
 
         public LocalizedCommand(CustomCommand inner)
         {

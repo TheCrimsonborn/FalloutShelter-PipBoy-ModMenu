@@ -1,3 +1,5 @@
+using FSAutoQuest.Vats;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -700,6 +702,16 @@ namespace FSAutoQuest.Menu
             if (Mathf.Abs(newScale - uiScale) > 0.01f)
             {
                 trav.Field("uiScaleMultiplier").SetValue(newScale);
+                try
+                {
+                    var cfgEntry = trav.Field<BepInEx.Configuration.ConfigEntry<float>>("uiScaleConfig")?.Value;
+                    if (cfgEntry != null)
+                    {
+                        cfgEntry.Value = newScale;
+                        menu.Config.Save();
+                    }
+                }
+                catch { }
             }
 
             // Kapat Butonu
@@ -902,7 +914,7 @@ namespace FSAutoQuest.Menu
                         else if (cmd.IsToggle)
                         {
                             cmd.IsEnabled = !cmd.IsEnabled;
-                            try { cmd.SaveConfig(); } catch { }
+                            SaveCommandState(menu, cmd);
                             cmd.Execute(new CommandInput());
                         }
                         else
@@ -919,6 +931,106 @@ namespace FSAutoQuest.Menu
             }
 
             GUI.EndScrollView();
+        }
+
+        public static void SaveCommandState(global::CTDynamicModMenu.CTDynamicModMenu menu, CustomCommand cmd)
+        {
+            if (cmd == null) return;
+
+            if (menu != null)
+            {
+                MenuPlugin.SetPersistentSettings(menu, true);
+            }
+
+            CustomCommand target = cmd;
+            if (cmd is LocalizedCommand loc && loc.Inner != null)
+            {
+                target = loc.Inner;
+                target.IsEnabled = cmd.IsEnabled;
+            }
+
+            try
+            {
+                target.SaveConfig();
+            }
+            catch { }
+
+            if (menu != null && menu.Config != null && !string.IsNullOrEmpty(target.Name))
+            {
+                try
+                {
+                    string key = target.Name + ": IsEnabled";
+                    var entry = menu.Config.Bind<bool>("Command Settings", key, target.IsEnabled, "Whether the command is enabled");
+                    if (entry != null)
+                    {
+                        entry.Value = target.IsEnabled;
+                    }
+                    menu.Config.Save();
+                }
+                catch { }
+            }
+
+            try
+            {
+                if (cmd is AutoQuestToggleCommand)
+                {
+                    AutoQuestPlugin.SetEnabled(cmd.IsEnabled);
+                    if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
+                        AutoQuestPlugin.Instance.Config.Save();
+                }
+                else if (cmd is AutoReturnToggleCommand)
+                {
+                    AutoQuestPlugin.SetAutoReturnEnabled(cmd.IsEnabled);
+                    if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
+                        AutoQuestPlugin.Instance.Config.Save();
+                }
+                else if (cmd is InstantReturnToggleCommand)
+                {
+                    AutoQuestPlugin.SetInstantReturnEnabled(cmd.IsEnabled);
+                    if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
+                        AutoQuestPlugin.Instance.Config.Save();
+                }
+                else if (cmd is BypassQuestRequirementsCommand)
+                {
+                    if (AutoQuestPlugin.CfgBypassQuestReqs != null)
+                    {
+                        AutoQuestPlugin.CfgBypassQuestReqs.Value = cmd.IsEnabled;
+                        if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
+                            AutoQuestPlugin.Instance.Config.Save();
+                    }
+                }
+                else if (cmd is VatsToggleBoostCommand)
+                {
+                    VatsController.IsBoostEnabled = cmd.IsEnabled;
+                    if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
+                        MenuPlugin.Instance.Config.Save();
+                }
+                else if (cmd is VatsToggleWarpCommand)
+                {
+                    VatsController.IsTimeWarpEnabled = cmd.IsEnabled;
+                    if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
+                        MenuPlugin.Instance.Config.Save();
+                }
+                else if (cmd is VatsAutoPauseIncidentsCommand)
+                {
+                    VatsController.AutoPauseIncidents = cmd.IsEnabled;
+                    if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
+                        MenuPlugin.Instance.Config.Save();
+                }
+                else if (cmd is VatsAutoPauseStrangerCommand)
+                {
+                    VatsController.AutoPauseStranger = cmd.IsEnabled;
+                    if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
+                        MenuPlugin.Instance.Config.Save();
+                }
+                else if (cmd is VatsToggleOverlayCommand)
+                {
+                    VatsController.ShowOverlay = cmd.IsEnabled;
+                    if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
+                        MenuPlugin.Instance.Config.Save();
+                }
+            }
+            catch { }
         }
 
         public static string GetSmartDefault(CustomCommand cmd)
@@ -1123,6 +1235,12 @@ namespace FSAutoQuest.Menu
                     string full = cmdPrefix + " " + val;
                     selectedCmd.Execute(CommandInput.Parse(full));
                     trav.Field("lastDisplayedMessage").SetValue(selectedCmd.Name + " (" + val + ") uygulandi.");
+                    try
+                    {
+                        if (menu != null && menu.Config != null) { menu.Config.Save(); }
+                        if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null) { MenuPlugin.Instance.Config.Save(); }
+                    }
+                    catch { }
                 }
                 catch (Exception ex)
                 {
