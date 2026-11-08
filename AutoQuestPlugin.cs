@@ -27,6 +27,7 @@ namespace FSAutoQuest
     {
         // ------------------------------------------------------------ config
         public static ConfigEntry<bool> CfgEnabled;
+        public static ConfigEntry<bool> CfgBypassQuestReqs;
         internal static ConfigEntry<bool> CfgAutoQuest;
         internal static ConfigEntry<bool> CfgAutoHeal;
         internal static ConfigEntry<bool> CfgAutoReturn;
@@ -123,6 +124,8 @@ namespace FSAutoQuest
 
             CfgEnabled = Config.Bind("Genel", "Etkin", true,
                 "Otomatik gorev modulu acik mi? (F6 ile de degistirilebilir)");
+            CfgBypassQuestReqs = Config.Bind("Genel", "GorevSartlariniKaldir", false,
+                "Gorevler icin seviye, silah, kiyafet ve SPECIAL gereksinimlerini kaldirir.");
             CfgAutoQuest = Config.Bind("Genel", "GoreviOtomatikBitir", true,
                 "Gorev hedeflerini otomatik tamamla.");
             CfgAutoHeal = Config.Bind("Genel", "OtomatikIyilestir", true,

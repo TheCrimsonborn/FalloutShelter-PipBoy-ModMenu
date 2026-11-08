@@ -41,11 +41,11 @@ Switch themes instantly with a single click using header navigation arrows:
 * Fixes the notorious FSCheat crash where leveling 20+ dwellers caused thread blocking and game freezes.
 * Safely processes up to 200 dwellers smoothly to Level 50 with zero frame drops.
 
-### 5. 🗺️ FSAutoQuest (Background Quest Automation)
-* Sends wasteland teams on quests automatically.
-* Clears combat rooms, collects legendary/rare loot, and returns dwellers safely to the vault in the background.
+### 5. 🗺️ FSAutoQuest & Quest Overhauls
+* **Background Quest Automation:** Sends wasteland teams on quests automatically, clears combat rooms, collects legendary/rare loot, and returns dwellers safely to the vault.
+* **Bypass Quest Requirements:** Removes all dweller level requirements, required weapons (Gauss Rifle, etc.), outfits, and SPECIAL stat thresholds so you can start ANY quest with ANY dweller immediately!
 
-### 6. ⚡ 47+ In-Game Cheats & Tweaks
+### 6. ⚡ 48+ In-Game Cheats & Tweaks
 * **Resources:** Infinite Nuka Caps, Quantum, Lunchboxes, Pet Carriers, Mr. Handy Boxes, Stimpaks, and Radaways.
 * **Dwellers:** Spawn custom/legendary dwellers, max SPECIAL attributes, instant adult/birth, 100% happiness, remove population caps.
 * **Rooms & Crafting:** Free crafting (no scrap/quantum needed), unlock all weapon/outfit recipes, 0% rush failure.

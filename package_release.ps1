@@ -9,13 +9,14 @@ $scriptDir  = $PSScriptRoot
 $releaseDir = Join-Path $scriptDir "release"
 
 Write-Host ">>> 1. En son DLL'ler derleniyor..." -ForegroundColor Cyan
-& (Join-Path $scriptDir "build.ps1") -Install
+& (Join-Path $scriptDir "build.ps1")
 
 # Release klasorunu temizle
 if (Test-Path $releaseDir) {
-    Remove-Item $releaseDir -Recurse -Force
+    Get-ChildItem $releaseDir -Filter "*.zip" | Remove-Item -Force
+} else {
+    New-Item -ItemType Directory -Path $releaseDir | Out-Null
 }
-New-Item -ItemType Directory -Path $releaseDir | Out-Null
 
 $tempFull    = Join-Path $releaseDir "temp_full"
 $tempPlugins = Join-Path $releaseDir "temp_plugins"
@@ -39,7 +40,9 @@ if (Test-Path (Join-Path $gameDir ".doorstop_version")) {
 # Plugins
 $pluginDlls = @("CTDynamicModMenu.dll", "FSCheat.dll", "FSAutoQuest.dll", "FSAutoQuestMenu.dll")
 foreach ($dll in $pluginDlls) {
-    $src = Join-Path $gameDir "BepInEx\plugins\$dll"
+    $srcLocal = Join-Path $scriptDir $dll
+    $srcGame = Join-Path $gameDir "BepInEx\plugins\$dll"
+    $src = if (Test-Path $srcLocal) { $srcLocal } else { $srcGame }
     if (Test-Path $src) {
         Copy-Item $src (Join-Path $tempFull "BepInEx\plugins\$dll") -Force
         Copy-Item $src (Join-Path $tempPlugins "BepInEx\plugins\$dll") -Force
@@ -79,6 +82,10 @@ Temel Mod Menusu Destegi: Toemmsen96 (CTDynamicModMenu & FSCheats)
 
 - OTOMATIK GOREV SISTEMI (Auto Quest):
   * Arka planda gorevleri otomatik tamamlar, esyalari toplar ve siginaga doner.
+
+- GOREV SARTLARINI KALDIRMA (Bypass Quest Requirements):
+  * Gorevlerin istedigi sakin seviyesi (ornegin Lv. 45), ozel silahlar (Gauss Rifle vb.),
+    kiyafetler ve SPECIAL nitelik gereksinimlerini tamamen baypas ederek her goreve aninda katilmanizi saglar.
 
 - PIP-BOY TERMINAL TASARIMI:
   * Yari saydam CRT terminal tasarimi, dinamik fare vurgulari (hover),
@@ -147,6 +154,10 @@ Base Framework: Toemmsen96 (CTDynamicModMenu & FSCheats)
 
 - AUTO QUEST AUTOMATION:
   * Automatically completes wasteland quests in background, loots, and returns.
+
+- BYPASS QUEST REQUIREMENTS:
+  * Allows starting any wasteland quest without meeting dweller level requirements (e.g. Lv. 45),
+    specific weapons (Gauss Rifle etc.), outfits, or SPECIAL stat thresholds.
 
 - CRT PIP-BOY TERMINAL DESIGN:
   * Semi-transparent terminal aesthetic, dynamic interactive hover glows,

@@ -16,6 +16,7 @@ namespace FSAutoQuest.Menu
         private AutoQuestToggleCommand _toggle;
         private MaxLevelDwellersCommand _maxLevel;
         private LanguageToggleCommand _langToggle;
+        private BypassQuestRequirementsCommand _bypassQuestReqs;
         private bool _registered;
         private bool _translated;
         private float _nextTry;
@@ -42,6 +43,7 @@ namespace FSAutoQuest.Menu
             _toggle = new AutoQuestToggleCommand();
             _maxLevel = new MaxLevelDwellersCommand();
             _langToggle = new LanguageToggleCommand();
+            _bypassQuestReqs = new BypassQuestRequirementsCommand();
             TryRegister();
         }
 
@@ -73,6 +75,7 @@ namespace FSAutoQuest.Menu
                     menu.RegisterCommand(_toggle);
                     menu.RegisterCommand(_maxLevel);
                     menu.RegisterCommand(_langToggle);
+                    menu.RegisterCommand(_bypassQuestReqs);
                     _registered = true;
                     Logger.LogInfo("FSAutoQuest komutlari mod menuye kaydedildi.");
                 }
@@ -347,6 +350,48 @@ namespace FSAutoQuest.Menu
         }
     }
 
+    /// <summary>Gorevlerin seviye, silah, kiyafet ve SPECIAL sartlarini kaldirir.</summary>
+    internal class BypassQuestRequirementsCommand : CustomCommand
+    {
+        public override string Name
+        {
+            get { return MenuPlugin.IsTurkish ? "Gorev Sartlarini Kaldir" : "Bypass Quest Requirements"; }
+        }
+        public override string Description
+        {
+            get
+            {
+                return MenuPlugin.IsTurkish
+                    ? "Seviye, silah, kiyafet ve SPECIAL sartlari olmadan tum gorevleri baslatmanizi saglar."
+                    : "Allows starting any quest without meeting level, weapon, outfit, or SPECIAL requirements.";
+            }
+        }
+        public override string Format { get { return "/bypassquestreqs"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Otomatik Gorev" : "FSAutoQuest"; } }
+
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+
+        public override bool IsEnabled
+        {
+            get
+            {
+                return AutoQuestPlugin.CfgBypassQuestReqs != null && AutoQuestPlugin.CfgBypassQuestReqs.Value;
+            }
+            set
+            {
+                if (AutoQuestPlugin.CfgBypassQuestReqs != null)
+                {
+                    AutoQuestPlugin.CfgBypassQuestReqs.Value = value;
+                }
+            }
+        }
+
+        public override void Execute(CommandInput message)
+        {
+        }
+    }
+
     /// <summary>Sakinleri tek tek max seviyeye cikarir (takilma yapmadan).</summary>
     internal class MaxLevelDwellersCommand : CustomCommand
     {
@@ -400,6 +445,7 @@ namespace FSAutoQuest.Menu
             { "Bypass Crafting Level Requirement", "Uretim Seviye Sartini Kaldir" },
             { "Bypass Room Build Requirement", "Oda Insa Nufus Sartini Kaldir" },
             { "Bypass Upgrade Dweller Requirement", "Oda Yukseltme Nufus Sartini Kaldir" },
+            { "Bypass Quest Requirements", "Gorev Sartlarini Kaldir" },
             { "No Rush Fail", "Hizlandirma Asla Basarisiz Olmasin" },
             { "Override Incident Chance", "Olay Ihtimalini Sabitle" },
             { "Set Incident Chance", "Olay Ihtimali Oranini Belirle" },
@@ -477,6 +523,7 @@ namespace FSAutoQuest.Menu
             { "Bypass Crafting Level Requirement", "Oda seviyesi yetmese bile Rare ve Efsanevi esyalari uretmenizi saglar." },
             { "Bypass Room Build Requirement", "Odalari acmak icin gereken sakin sayisi sartini kaldirir." },
             { "Bypass Upgrade Dweller Requirement", "Oda seviyesini yukseltmek icin gereken sakin sayisi sinirini kaldirir." },
+            { "Bypass Quest Requirements", "Seviye, silah, kiyafet ve SPECIAL sartlari olmadan tum gorevleri baslatmanizi saglar." },
             { "No Rush Fail", "Oda hizlandirmalarinda (Rush) yangin, akrep veya felaket cikmasini engeller." },
             { "Override Incident Chance", "Rastgele olaylarin (yangin, baskin vb.) cikma ihtimalini sabitler." },
             { "Set Incident Chance", "Olay ihtimali yuzdesini (0-100) ayarlar (/overrideincidentchance ile kullanilir)." },

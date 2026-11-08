@@ -48,13 +48,15 @@ $menuRefs = @(
     (Join-Path $game "BepInEx\core\BepInEx.dll"),
     (Join-Path $game "BepInEx\core\0Harmony.dll"),
     (Join-Path $managed "netstandard.dll"),
+    (Join-Path $managed "Assembly-CSharp.dll"),
     $mainDll,
     (Join-Path $plugins "CTDynamicModMenu.dll")
 ) + $unityRefs
 
 Invoke-Compile -Sources @(
     (Join-Path $PSScriptRoot "MenuCommands.cs"),
-    (Join-Path $PSScriptRoot "FalloutThemes.cs")
+    (Join-Path $PSScriptRoot "FalloutThemes.cs"),
+    (Join-Path $PSScriptRoot "QuestRequirementsPatch.cs")
 ) -References $menuRefs -Output $menuDll
 
 # ---------------------------------------------------------------- 3) kurulum
