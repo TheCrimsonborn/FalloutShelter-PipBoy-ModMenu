@@ -990,6 +990,12 @@ namespace FSAutoQuest.Menu
                     if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
                         AutoQuestPlugin.Instance.Config.Save();
                 }
+                else if (cmd is AutoKillEnemiesToggleCommand)
+                {
+                    AutoQuestPlugin.SetAutoKillEnemiesEnabled(cmd.IsEnabled);
+                    if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
+                        AutoQuestPlugin.Instance.Config.Save();
+                }
                 else if (cmd is BypassQuestRequirementsCommand)
                 {
                     if (AutoQuestPlugin.CfgBypassQuestReqs != null)

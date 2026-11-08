@@ -20,6 +20,7 @@ namespace FSAutoQuest.Menu
         private MaxLevelDwellersCommand _maxLevel;
         private LanguageToggleCommand _langToggle;
         private BypassQuestRequirementsCommand _bypassQuestReqs;
+        private AutoKillEnemiesToggleCommand _autoKill;
         private VatsToggleBoostCommand _vatsBoost;
         private VatsToggleWarpCommand _vatsWarp;
         private VatsSetMultiplierCommand _vatsMult;
@@ -92,6 +93,7 @@ namespace FSAutoQuest.Menu
             _maxLevel = new MaxLevelDwellersCommand();
             _langToggle = new LanguageToggleCommand();
             _bypassQuestReqs = new BypassQuestRequirementsCommand();
+            _autoKill = new AutoKillEnemiesToggleCommand();
             try
             {
                 VatsController.Initialize(Config);
@@ -143,6 +145,7 @@ namespace FSAutoQuest.Menu
                     menu.RegisterCommand(_maxLevel);
                     menu.RegisterCommand(_langToggle);
                     menu.RegisterCommand(_bypassQuestReqs);
+                    menu.RegisterCommand(_autoKill);
                     if (_vatsBoost != null) menu.RegisterCommand(_vatsBoost);
                     if (_vatsWarp != null) menu.RegisterCommand(_vatsWarp);
                     if (_vatsMult != null) menu.RegisterCommand(_vatsMult);
@@ -557,6 +560,39 @@ namespace FSAutoQuest.Menu
     }
 
     /// <summary>Gorevlerin seviye, silah, kiyafet ve SPECIAL sartlarini kaldirir.</summary>
+        /// <summary>Gorevdeki tum dusmanlari otomatik oldurur (Dost/diyalog NPC'lerine dokunmaz).</summary>
+    internal class AutoKillEnemiesToggleCommand : CustomCommand
+    {
+        public override string Name
+        {
+            get { return MenuPlugin.IsTurkish ? "Dusmanlari Otomatik Oldur" : "Auto-Kill Quest Enemies"; }
+        }
+        public override string Description
+        {
+            get
+            {
+                return MenuPlugin.IsTurkish
+                    ? "Gorevdeki tum dusman NPC'leri (yagmacilar, olum penceleri, akrepler vb.) otomatik olarak aninda oldurur. Dost ve diyalog NPC'lerine asla zarar vermez."
+                    : "Instantly defeats all hostile enemy creatures (raiders, deathclaws, scorpions, etc.) in the quest. Never harms friendly or dialogue NPCs.";
+            }
+        }
+        public override string Format { get { return "/autokill"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Otomatik Gorev" : "FSAutoQuest"; } }
+
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+
+        public override bool IsEnabled
+        {
+            get { return AutoQuestPlugin.IsAutoKillEnemiesEnabled; }
+            set { AutoQuestPlugin.SetAutoKillEnemiesEnabled(value); }
+        }
+
+        public override void Execute(CommandInput message)
+        {
+        }
+    }
+
     internal class BypassQuestRequirementsCommand : CustomCommand
     {
         public override string Name

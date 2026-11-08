@@ -38,6 +38,7 @@ namespace FSAutoQuest
         internal static ConfigEntry<int> CfgRadaway;
         internal static ConfigEntry<float> CfgInterval;
         internal static ConfigEntry<bool> CfgVerbose;
+        internal static ConfigEntry<bool> CfgAutoKillEnemies;
 
         internal static ManualLogSource Log;
 
@@ -134,6 +135,21 @@ namespace FSAutoQuest
                 Log.LogInfo("Aninda Kapiya Ulas: " + (value ? "ACIK" : "KAPALI"));
         }
 
+        public static bool IsAutoKillEnemiesEnabled
+        {
+            get { return CfgAutoKillEnemies == null || CfgAutoKillEnemies.Value; }
+            set { SetAutoKillEnemiesEnabled(value); }
+        }
+
+        public static void SetAutoKillEnemiesEnabled(bool value)
+        {
+            if (CfgAutoKillEnemies == null) return;
+            bool changed = CfgAutoKillEnemies.Value != value;
+            CfgAutoKillEnemies.Value = value;
+            if (changed && Log != null)
+                Log.LogInfo("Dusmanlari Otomatik Oldur: " + (value ? "ACIK" : "KAPALI"));
+        }
+
         /// <summary>Mod menuden "Sakinleri Max Seviye Yap" icin.</summary>
         public static void QueueMaxLevelDwellers()
         {
@@ -165,6 +181,8 @@ namespace FSAutoQuest
                 "Gorev basarili olunca otomatik olarak kasaya don. (Kapaliysa kullanicinin Return to Vault butonuna basmasini bekler)");
             CfgInstantReturn = Config.Bind("Genel", "AnindaKapiyaUlas", true,
                 "Gorev bittiginde saatlerce yurume suresini beklemeden ekibi aninda siginak kapisina ulastirir.");
+            CfgAutoKillEnemies = Config.Bind("Genel", "DusmanlariOldur", true,
+                "Gorevdeki tum dusman NPC'leri otomatik oldur. (Dost ve diyalog NPC'lerine asla dokunmaz)");
             CfgAutoRevive = Config.Bind("Genel", "OtomatikCanlandir", true,
                 "Gorevde olen sakinleri otomatik canlandir.");
             CfgRefill = Config.Bind("Sarf", "SarfMalzemeTamamla", true,
@@ -573,6 +591,7 @@ namespace FSAutoQuest
 
                 if (!cleared)
                 {
+                    if (CfgAutoKillEnemies != null && CfgAutoKillEnemies.Value) { KillRoomEnemies(room); }
                     try
                     {
                         Call(room, "SetAndNotifyRoomClearedOut", EnumVal("EQuestRoomResult", "Succeeded", 1));
@@ -743,6 +762,63 @@ namespace FSAutoQuest
             }
         }
 
+                private void KillRoomEnemies(object room)
+        {
+            if (room == null) return;
+            try
+            {
+                var convList = M(room, "m_conversationNPCs") as IList;
+                var fighters = M(room, "m_fighterInstances") as IList;
+                if (fighters == null || fighters.Count == 0) return;
+
+                for (int i = 0; i < fighters.Count; i++)
+                {
+                    var f = fighters[i];
+                    if (f == null) continue;
+
+                    // 1. ASLA bir Dweller'a (oyuncu sakinine veya kurtarilacak sakine) dokunma
+                    // check type below
+                    string typeFullName = f.GetType().FullName;
+                    if (typeFullName.Contains("Dweller")) continue;
+
+                    // 2. Diyalog ve dost NPC listesindeyse (m_conversationNPCs) ASLA dokunma
+                    if (convList != null && convList.Contains(f)) continue;
+
+                    // 3. Canli dusman kontrolu (IsAlive == true)
+                    bool alive = false;
+                    try { alive = Truthy(Call(f, "IsAlive")); } catch { }
+                    if (!alive) continue;
+
+                    // 4. Dusman turu kontrolu (EEnemyType != None veya Fighter turevi)
+                    int enemyType = 0;
+                    try { enemyType = Convert.ToInt32(Call(f, "get_EnemyType")); } catch { }
+                    string typeName = f.GetType().Name;
+
+                    if (enemyType > 0 || typeName.EndsWith("Fighter") || typeName.Contains("Creature"))
+                    {
+                        try
+                        {
+                            Call(f, "Kill");
+                        }
+                        catch
+                        {
+                            try
+                            {
+                                var hp = M(f, "CurrentHealth");
+                                if (hp != null) SetMember(hp, "m_healthValue", 0f);
+                                Call(f, "Kill");
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogV("Dusman temizleme hatasi: " + Inner(ex).Message);
+            }
+        }
+
         private void SweepAllQuestRoomsLoot(bool forceCompleteAll)
         {
             try
@@ -755,6 +831,7 @@ namespace FSAutoQuest
 
                 foreach (var obj in allRooms)
                 {
+                    if (CfgAutoKillEnemies != null && CfgAutoKillEnemies.Value) { KillRoomEnemies(obj); }
                     if (obj == null) continue;
 
                     // Odayı temizle (düşmanlar öldürüldü sayılır)
