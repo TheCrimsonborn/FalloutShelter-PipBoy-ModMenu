@@ -1,0 +1,16 @@
+# Build Outputs
+*.dll
+*.pdb
+*.exe
+*.log
+*.bak
+
+# Release binaries (hosted on GitHub Releases instead of git tracking)
+release/temp*
+release/*.zip
+
+# IDE / Editor Files
+.vs/
+.vscode/
+*.user
+*.suo
