@@ -10,6 +10,8 @@ This mod completely transforms your game into an authentic, deeply atmospheric [
 
 Beyond aesthetics, this mod fixes critical engine crashes from legacy mods (such as the notorious freeze when leveling large vaults or clicking resource buttons), provides an advanced [b]Full-Dungeon Quest Automation & Sweeper Engine[/b] with smart enemy auto-kill and auto-recipe collection, and natively integrates [b]V.A.T.S. (Vault Accelerated Time System)[/b] for effortless time control with smart auto-pausing.
 
+[b]For full change log check:[/b] [url=https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu/releases]https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu/releases[/url]
+
 [line]
 
 [size=4][b]Main Features[/b][/size]
@@ -144,5 +146,6 @@ Delete [font=Courier New]BepInEx[/font], [font=Courier New]winhttp.dll[/font], [
 
 [line]
 
-[size=4][b]GitHub[/b][/size]
-[url=https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu]https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu[/url]
+[size=4][b]Changelog & GitHub[/b][/size]
+[b]For full change log check:[/b] [url=https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu/releases]https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu/releases[/url]
+[b]Source Code Repository:[/b] [url=https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu]https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu[/url]
