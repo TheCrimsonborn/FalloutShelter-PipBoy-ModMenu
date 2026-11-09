@@ -1,0 +1,195 @@
+================================================================================
+FALLOUT SHELTER PIP-BOY MOD MENU & QUEST ENGINE - NEXUS MODS CHANGELOGS
+================================================================================
+Nexus Mods Changelog Form Notu:
+Her sürüm için Nexus "Add changelog" penceresinde:
+1. Version kutucuğuna ilgili sürüm numarasını yazın (Örn: 1.0.0)
+2. "Changelog entry" kutusuna ilgili sürümün altındaki İngilizce satırları kopyalayıp yapıştırın.
+(Nexus "One line per entry" kuralına göre her satırı otomatik madde imi yapar)
+================================================================================
+
+--------------------------------------------------------------------------------
+VERSION: 1.0.0
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Initial release of Fallout Shelter Pip-Boy Terminal Mod Menu & Ultimate Cheats.
+Authentic RobCo Pip-Boy CRT terminal interface with curved scanlines and button glow.
+10 authentic faction themes (BoS, Institute, Minutemen, Railroad, Nuka-World, Vault 33, New Vegas, etc.).
+Full bilingual support: instantaneous toggle between English and Turkish (100% localized).
+Crash-free dweller leveling: safely boost up to 200 dwellers to Level 50.
+FSAutoQuest automation engine: background quest completion, automated looting, and safe return.
+47+ built-in cheat toggles and parameter adjustments for resources, items, pets, and dwellers.
+Responsive UI scaling slider with multi-row tab wrapping.
+
+[Türkçe Açıklaması]:
+- Fallout Shelter Pip-Boy Terminal Mod Menüsü ilk çıkış sürümü.
+- Orijinal RobCo CRT tüplü ekran çizgileri, parıltılı butonlar ve retro arayüz.
+- 10 farklı fraksiyon teması (BoS, Institute, Minutemen, Railroad, Nuka-World, Vault 33, New Vegas vb.).
+- Tam çift dil desteği (Türkçe ve İngilizce arasında anında geçiş).
+- Çökme korumalı sakin seviye yükseltme (200 sakini tek tıkla seviye 50 yapma).
+- FSAutoQuest otomatik görev tamamlama, eşya toplama ve güvenli dönüş.
+- Kaynaklar, odalar, eşyalar, evcil hayvanlar için 47'den fazla hile seçeneği.
+- Çözünürlüğe duyarlı boyutlandırma (UI Scale) ve çok satırlı sekme yapısı.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.1.0
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Added 'Bypass Quest Requirements' (Görev Şartlarını Kaldır) to FSAutoQuest tab.
+Removes all quest entry restrictions: dweller level, specific weapons, outfits, and SPECIAL stat requirements.
+Forces green checkmarks on all quest cards and unlocks the 'Start Quest' button unconditionally.
+Full bilingual support (TR/EN) with real-time toggle.
+
+[Türkçe Açıklaması]:
+- FSAutoQuest sekmesine 'Görev Şartlarını Kaldır' özelliği eklendi.
+- Sakin seviyesi, özel silah, kıyafet ve SPECIAL nitelik gereksinimleri tamamen kaldırıldı.
+- Tüm görev kartlarında yeşil tikleri aktif ederek 'Görevi Başlat' butonunu her koşulda açar.
+- Türkçe ve İngilizce dil desteği ile tam entegre.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.2.0
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Complete overhaul of the quest dungeon traversal and sweeping engine.
+100% Full-Dungeon Sweeper: automatically explores every room in the entire quest layout.
+Loot sweep guarantee: loots 100% of containers (safes, desks, lockers) and collects corpse drops from all enemies.
+Collects room completion rewards and ensures zero items or recipes are left behind.
+Integrated with Bypass Quest Requirements for full dungeon automation.
+
+[Türkçe Açıklaması]:
+- Görev zindan gezinti ve temizleme motoru baştan aşağı yenilendi.
+- %100 Zindan Temizliği: Görev binasındaki her odayı eksiksiz ziyaret edip tarar.
+- Sıfır ganimet kaybı: Tüm kasaları, masaları, dolapları ve düşman cesetlerindeki eşyaları toplar.
+- Oda tamamlama ödüllerini toplar, hiçbir ganimetin geride kalmamasını sağlar.
+- Görev şartlarını kaldırma özelliğiyle tam uyumlu çalışır.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.2.2
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Manual Return To Vault by default: quest result window now stays open so players can review their loot.
+Added 'Auto Return to Vault' toggle under FSAutoQuest tab for players who prefer fully hands-off questing.
+Prevents accidental loot skipping or immediate cutscene triggers after dungeon completion.
+
+[Türkçe Açıklaması]:
+- Görev bitişinde kasaya manuel dönüş varsayılan yapıldı; ödül ekranı açık kalarak toplanan ganimeti inceleme imkanı sağlandı.
+- FSAutoQuest sekmesine 'Otomatik Kasaya Dön' açma/kapatma seçeneği eklendi.
+- Görev biter bitmez ödül ekranının anında kapanıp geçilmesi engellendi.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.2.3
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Added Quest God Mode: dwellers on quests become invulnerable and never wipe.
+Added Instant Revive safeguard during quest combat.
+Added Instant Return to Vault Door: skips wasteland travel return timer when recalling quest teams.
+Fixed console log spam related to QuestDataManager and QuestScene.
+Optimized room loot sweep routines for instant reward pickup.
+
+[Türkçe Açıklaması]:
+- Görev Ölümsüzlük Modu (Quest God Mode) eklendi; görevdeki sakinler asla ölmez ve görev başarısız olmaz.
+- Görev çatışmalarında anında canlanma koruması eklendi.
+- Kasaya Anında Dönüş eklendi (çorak toprak dönüş bekleme süresi atlanır).
+- Konsoldaki QuestDataManager ve QuestScene log kirliliği temizlendi.
+- Oda ganimetlerini anında toplama rutinleri optimize edildi.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.2.4
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Fixed issue where resource adjustment inputs (Caps, Nuka-Cola Quantum, Lunchboxes, Pet Boxes, Starter Packs) could not be set.
+Added Pip-Boy retro-styled parameter input modal dialog with quick preset buttons (+10k, +100k, Max 999k).
+Fixed Unity GUI IndexOutOfRangeException crash when clicking certain resource buttons.
+Fixed cheat toggle buttons (e.g. Max Resources, Free Crafting) to trigger their effects immediately upon activation.
+Suppressed multi-megabyte savegame decrypt log dumps to eliminate micro-stutters.
+
+[Türkçe Açıklaması]:
+- Şişe Kapağı, Nuka-Cola Quantum, Beslenme Çantası, Evcil Hayvan Sandığı gibi değerleri ayarlayamama ve tıklayınca çökme sorunu düzeltildi.
+- Hızlı hazır butonlara sahip (+10k, +100k, Max 999k) retro Pip-Boy parametre giriş penceresi eklendi.
+- Unity GUI IndexOutOfRangeException hatası ve çökmesi giderildi.
+- Maksimum Kaynak, Ücretsiz Üretim gibi butonların tıklandığı an hileyi anında çalıştırması sağlandı.
+- Oyunda anlık takılmalara yol açan devasa kayıt dosyası log dökümleri engellendi.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.3.0
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Integrated V.A.T.S. (Vault Accelerated Time System) directly into the RobCo Pip-Boy Mod Menu with a dedicated tab.
+10x Full Time Boost and 50x Time Warp modes: speeds up timers, dweller SPECIAL training, crafting, pregnancies, and wasteland exploring.
+Smart Auto-Pause: automatically resets time acceleration to normal 1.0x when disasters strike (fires, raiders, radscorpions, deathclaws).
+Auto-Pause on Mysterious Stranger appearance so you never miss him.
+On-the-fly customizable speed multipliers (2x, 5x, 10x, 25x, 50x, 100x) via Pip-Boy styled dialogs.
+Real-time CRT in-game time and speed multiplier status overlay.
+Fully synchronized controls between keyboard shortcuts (Ctrl+Alt, Shift+Alt, Left Ctrl) and GUI menu toggles.
+
+[Türkçe Açıklaması]:
+- V.A.T.S. (Vault Accelerated Time System) zaman hızlandırma motoru Pip-Boy mod menüsüne özel sekme olarak entegre edildi.
+- 10x Zaman Hızlandırma ve 50x Zaman Bükme modları (SPECIAL eğitimleri, üretim, hamilelikler ve çorak toprak keşifleri hızlanır).
+- Akıllı Otomatik Duraklatma (Smart Auto-Pause): Yangın, akrep, akıncı, ölüm pençesi gibi felaketlerde hızı otomatik 1x normale çeker.
+- Gizemli Yabancı (Mysterious Stranger) belirdiğinde oyunu otomatik duraklatır.
+- Pip-Boy temalı açılır pencere ile anlık hız çarpanı ayarlama (2x, 5x, 10x, 25x, 50x, 100x).
+- Ekranda canlı oyun saati ve aktif hız çarpanı CRT göstergesi.
+- Klavye kısayolları ile menü butonları arasında kusursuz senkronizasyon.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.3.1
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Permanent Toggle & Settings Persistence Engine: mod menu toggles no longer reset when restarting the game.
+Fixed CustomCommand.SaveConfig saving translated Turkish names instead of invariant English config identifiers.
+Locked persistentSettings to true permanently to prevent configuration loss.
+Immediate disk flushes: BepInEx configuration is now written to disk immediately upon any button click or modal change.
+Fixed Language (TR/EN) and UI Scale slider persistence across game restarts.
+
+[Türkçe Açıklaması]:
+- Kalıcı Ayar Kaydetme Sistemi: Oyun kapatılıp açıldığında hilelerin ve seçeneklerin sıfırlanma sorunu tamamen çözüldü.
+- Türkçe dil seçildiğinde ayarların Türkçe isimlerle kaydedilip bozulması hatası giderildi (artık sabit İngilizce kimlikler kullanılır).
+- Kalıcı ayar kilidi (persistentSettings) aktif edilerek ayar kayıpları engellendi.
+- Butonlara tıklandığı ve ayar değiştiği anda BepInEx ayar dosyası anında diske kaydedilir.
+- Dil seçimi (TR/EN) ve Arayüz Boyutlandırma (UI Scale) değerleri artık kalıcı olarak hatırlanır.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.3.2
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Added Smart Auto-Kill Enemy NPCs (/autokill) to FSAutoQuest tab with persistent memory.
+Automatically and instantly eliminates all hostile creatures (Raiders, Deathclaws, Radscorpions, Ghouls, Enclave, Synths, Aliens) across quest dungeon rooms.
+100% Friendly NPC & Dweller Safeguard: strictly protects player quest dwellers, rescued wasteland dwellers, and friendly dialogue NPCs.
+Triggers native game death events properly: satisfies 'Kill X Enemies' / 'Kill Quest Boss' requirements and awards full XP.
+Safe execution: checks for active hostility and health before dispatching targets.
+
+[Türkçe Açıklaması]:
+- FSAutoQuest sekmesine Akıllı Düşman Öldürme (Smart Auto-Kill - /autokill) seçeneği eklendi.
+- Görev odalarındaki tüm düşmanları (Akıncılar, Ölüm Pençeleri, Radyasyon Akrepleri, Ghoullar, Enclave, Synth'ler, Uzaylılar) otomatik ve anında etkisiz hale getirir.
+- %100 Dost NPC ve Sakin Koruma Garantisi: Kendi sakinlerinize, kurtarılacak esirlere ve diyalog NPC'lerine kesinlikle zarar vermez.
+- Oyunun yerel ölüm olaylarını tetikler: 'X Düşman Öldür' veya 'Bölüm Sonu Canavarını Öldür' görev hedeflerini tamamlar ve tam XP kazandırır.
+- Ayar durumu oyun kapatıldığında da hatırlanır.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.3.3
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Added Auto-Collect Recipe Fragments & Reward Popups (/autocollect) to FSAutoQuest tab with persistent memory.
+Automatically claims and closes 'A Dweller found a Recipe Fragment!' (ThemeRecipeLootWindow) popups (both new and duplicate fragments).
+Automatically claims and dismisses Weapon & Outfit Blueprint popups (RecipeLootWindow).
+Automatically dismisses post-quest and wasteland arrival dialogue popups (LunchBoxCollectedWindow, ArrivalWindow) to prevent getting stuck.
+Unscaled Time Processing: continues operating smoothly even when game time is paused by UI modal windows.
+Ensures completely uninterrupted AFK quest farming and wasteland operations.
+
+[Türkçe Açıklaması]:
+- FSAutoQuest sekmesine Tarif Parçası ve Ödül Pencerelerini Otomatik Toplama (/autocollect) seçeneği eklendi.
+- 'Bir Sakin Tarif Parçası Buldu!' (ThemeRecipeLootWindow) pencerelerini hem yeni hem kopya parçalar için otomatik toplayıp kapatır.
+- Silah ve Kıyafet Şeması (RecipeLootWindow) pencerelerini otomatik onaylayıp kapatır.
+- Görev sonu ve çorak toprak varış pencerelerini (LunchBoxCollectedWindow, ArrivalWindow) otomatik onaylayarak ekranın kilitlenmesini engeller.
+- Oyun modal pencereler sebebiyle duraklasa dahi (Unscaled Time) arka planda kesintisiz çalışır.
+- Tamamen kesintisiz AFK görev ve ganimet toplama imkanı sağlar.
+================================================================================
