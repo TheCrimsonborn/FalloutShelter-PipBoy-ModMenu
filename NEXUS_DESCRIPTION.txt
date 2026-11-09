@@ -93,19 +93,19 @@ An all-in-one questing powerhouse built right into the Pip-Boy under the [b]FSAu
 [size=4][b]Installation Instructions[/b][/size]
 
 [size=3][b]For Most Users (Full Pack - Recommended):[/b][/size]
-[olist]
+[list=1]
 [*]Download the [b]Full Pack[/b] from the Files tab.[/*]
 [*]Open your Fallout Shelter root game directory:
 [font=Courier New]<Default: C:\Program Files (x86)\Steam\steamapps\common\Fallout Shelter>[/font][/*]
 [*]Extract all contents of the zip file directly into the game folder (so that [b]winhttp.dll[/b] and the [b]BepInEx[/b] folder sit next to [b]FalloutShelter.exe[/b]).[/*]
-[*]Launch the game through Steam!
-[/olist]
+[*]Launch the game through Steam![/*]
+[/list]
 
 [size=3][b]For Users Who Already Have BepInEx Installed:[/b][/size]
-[olist]
+[list=1]
 [*]Download the [b]Plugins Only[/b] archive.[/*]
 [*]Extract the contents directly into your game's [font=Courier New]BepInEx/plugins[/font] folder.[/*]
-[/olist]
+[/list]
 
 [line]
 
