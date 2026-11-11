@@ -57,6 +57,7 @@ Invoke-Compile -Sources @(
     (Join-Path $PSScriptRoot "MenuCommands.cs"),
     (Join-Path $PSScriptRoot "FalloutThemes.cs"),
     (Join-Path $PSScriptRoot "VatsController.cs"),
+    (Join-Path $PSScriptRoot "EventManagerController.cs"),
     (Join-Path $PSScriptRoot "QuestRequirementsPatch.cs")
 ) -References $menuRefs -Output $menuDll
 

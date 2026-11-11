@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using BepInEx;
 using CTDynamicModMenu.Commands;
+using FSAutoQuest.Events;
 using FSAutoQuest.Vats;
 using UnityEngine;
 
@@ -29,6 +30,23 @@ namespace FSAutoQuest.Menu
         private VatsAutoPauseIncidentsCommand _vatsPauseIncidents;
         private VatsAutoPauseStrangerCommand _vatsPauseStranger;
         private VatsToggleOverlayCommand _vatsOverlay;
+
+        // Olay Yoneticisi (Event Manager)
+        private EventStopAllCommand _eventStopAll;
+        private EventTriggerRaidersCommand _eventRaiders;
+        private EventTriggerDeathclawsCommand _eventDeathclaws;
+        private EventTriggerAliensCommand _eventAliens;
+        private EventTriggerGhoulsCommand _eventGhouls;
+        private EventTriggerSynthsCommand _eventSynths;
+        private EventTriggerEnclaveCommand _eventEnclave;
+        private EventTriggerRadscorpionsCommand _eventRadscorpions;
+        private EventTriggerMoleratsCommand _eventMolerats;
+        private EventTriggerRadroachesCommand _eventRadroaches;
+        private EventTriggerFireCommand _eventFire;
+        private EventSpawnStrangerCommand _eventStranger;
+        private EventSpawnBottleAndCappyCommand _eventBottleAndCappy;
+        private EventAutoDefendToggleCommand _eventAutoDefend;
+        private EventAutoTapVisitorsToggleCommand _eventAutoTapVisitors;
         private bool _registered;
         private bool _translated;
         private float _nextTry;
@@ -111,12 +129,37 @@ namespace FSAutoQuest.Menu
             {
                 Logger.LogWarning("VATS baslatma hatasi: " + ex.Message);
             }
+
+            try
+            {
+                EventManagerController.Initialize(Config);
+                _eventStopAll = new EventStopAllCommand();
+                _eventRaiders = new EventTriggerRaidersCommand();
+                _eventDeathclaws = new EventTriggerDeathclawsCommand();
+                _eventAliens = new EventTriggerAliensCommand();
+                _eventGhouls = new EventTriggerGhoulsCommand();
+                _eventSynths = new EventTriggerSynthsCommand();
+                _eventEnclave = new EventTriggerEnclaveCommand();
+                _eventRadscorpions = new EventTriggerRadscorpionsCommand();
+                _eventMolerats = new EventTriggerMoleratsCommand();
+                _eventRadroaches = new EventTriggerRadroachesCommand();
+                _eventFire = new EventTriggerFireCommand();
+                _eventStranger = new EventSpawnStrangerCommand();
+                _eventBottleAndCappy = new EventSpawnBottleAndCappyCommand();
+                _eventAutoDefend = new EventAutoDefendToggleCommand();
+                _eventAutoTapVisitors = new EventAutoTapVisitorsToggleCommand();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning("Event Manager baslatma hatasi: " + ex.Message);
+            }
             TryRegister();
         }
 
         private void Update()
         {
             try { VatsController.TickUpdate(); } catch { }
+            try { EventManagerController.TickUpdate(); } catch { }
             if (global::CTDynamicModMenu.CTDynamicModMenu.Instance != null) { SetPersistentSettings(global::CTDynamicModMenu.CTDynamicModMenu.Instance, true); }
             if (_registered && _translated) return;
             if (Time.unscaledTime < _nextTry) return;
@@ -156,8 +199,24 @@ namespace FSAutoQuest.Menu
                     if (_vatsPauseIncidents != null) menu.RegisterCommand(_vatsPauseIncidents);
                     if (_vatsPauseStranger != null) menu.RegisterCommand(_vatsPauseStranger);
                     if (_vatsOverlay != null) menu.RegisterCommand(_vatsOverlay);
+
+                    if (_eventStopAll != null) menu.RegisterCommand(_eventStopAll);
+                    if (_eventRaiders != null) menu.RegisterCommand(_eventRaiders);
+                    if (_eventDeathclaws != null) menu.RegisterCommand(_eventDeathclaws);
+                    if (_eventAliens != null) menu.RegisterCommand(_eventAliens);
+                    if (_eventGhouls != null) menu.RegisterCommand(_eventGhouls);
+                    if (_eventSynths != null) menu.RegisterCommand(_eventSynths);
+                    if (_eventEnclave != null) menu.RegisterCommand(_eventEnclave);
+                    if (_eventRadscorpions != null) menu.RegisterCommand(_eventRadscorpions);
+                    if (_eventMolerats != null) menu.RegisterCommand(_eventMolerats);
+                    if (_eventRadroaches != null) menu.RegisterCommand(_eventRadroaches);
+                    if (_eventFire != null) menu.RegisterCommand(_eventFire);
+                    if (_eventStranger != null) menu.RegisterCommand(_eventStranger);
+                    if (_eventBottleAndCappy != null) menu.RegisterCommand(_eventBottleAndCappy);
+                    if (_eventAutoDefend != null) menu.RegisterCommand(_eventAutoDefend);
+                    if (_eventAutoTapVisitors != null) menu.RegisterCommand(_eventAutoTapVisitors);
                     _registered = true;
-                    Logger.LogInfo("FSAutoQuest komutlari mod menuye kaydedildi.");
+                    Logger.LogInfo("FSAutoQuest ve Event Manager komutlari mod menuye kaydedildi.");
                 }
 
                 if (!_translated)
@@ -838,6 +897,277 @@ namespace FSAutoQuest.Menu
         public override void Execute(CommandInput message) { }
     }
 
+    // =========================================================================
+    // Olay Yoneticisi (Event Manager) Komutlari
+    // =========================================================================
+
+    /// <summary>Tum yangin, istila ve saldiran dusmanlari aninda yok eder.</summary>
+    internal class EventStopAllCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Tum Olaylari & Baskinlari Bitir" : "Stop All Incidents & Defeat Invaders"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasada devam eden tum yanginlari sondurur, istilalari temizler ve saldiran tum akinci, uzayli ve olum pencelerini aninda yok eder."
+            : "Instantly extinguishes all fires, clears infestations, and eliminates all attacking raiders, deathclaws, or aliens."; } }
+        public override string Format { get { return "/eventstopall"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.StopAllIncidents();
+        }
+    }
+
+    /// <summary>Akinci baskini baslat.</summary>
+    internal class EventTriggerRaidersCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Akinci Baskini Baslat" : "Trigger Raiders Attack"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasaya hemen bir Akinci (Raider) saldirisi baslatir."
+            : "Immediately launches a Raider attack breaching the Vault door."; } }
+        public override string Format { get { return "/eventraiders"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.Raiders);
+        }
+    }
+
+    /// <summary>Olum pencesi baskini baslat.</summary>
+    internal class EventTriggerDeathclawsCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Olum Pencesi Baskini Baslat" : "Trigger Deathclaws Attack"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasaya hemen vahsi bir Olum Pencesi (Deathclaw) saldirisi baslatir."
+            : "Immediately launches a ferocious Deathclaw assault on the Vault door."; } }
+        public override string Format { get { return "/eventdeathclaws"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.Deathclaw);
+        }
+    }
+
+    /// <summary>Uzayli baskini baslat.</summary>
+    internal class EventTriggerAliensCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Uzayli Baskini Baslat" : "Trigger Aliens Attack"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasaya hemen lazerli bir Uzayli (Alien) saldirisi baslatir."
+            : "Immediately launches an Alien invader attack on the Vault door."; } }
+        public override string Format { get { return "/eventaliens"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.Alien);
+        }
+    }
+
+    /// <summary>Vahsi Ghoul baskini baslat.</summary>
+    internal class EventTriggerGhoulsCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Vahsi Ghoul Baskini Baslat" : "Trigger Feral Ghouls Attack"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasaya hemen hizli bir Vahsi Ghoul (Feral Ghoul) saldirisi baslatir."
+            : "Immediately launches a Feral Ghoul raid on the Vault door."; } }
+        public override string Format { get { return "/eventghouls"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.Ghoul);
+        }
+    }
+
+    /// <summary>Institute Synth baskini baslat.</summary>
+    internal class EventTriggerSynthsCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Synth Baskini Baslat" : "Trigger Synths Attack"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasaya hemen bir Institute Synth saldirisi baslatir."
+            : "Immediately launches an Institute Synth infiltration attack."; } }
+        public override string Format { get { return "/eventsynths"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.Gen1Synth);
+        }
+    }
+
+    /// <summary>Enclave saldirisi baslat.</summary>
+    internal class EventTriggerEnclaveCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Enclave Baskini Baslat" : "Trigger Enclave Attack"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasaya hemen bir Enclave Askeri ve Guc Zirhi saldirisi baslatir."
+            : "Immediately launches an Enclave Security and Power Armor attack."; } }
+        public override string Format { get { return "/eventenclave"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.EnclavePowerArmor);
+        }
+    }
+
+    /// <summary>Radyasyon akrebi istilasi baslat.</summary>
+    internal class EventTriggerRadscorpionsCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Radyasyon Akrebi Istilasi" : "Trigger Radscorpions Infestation"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasa odasinda hemen enerji emen bir Radyasyon Akrebi (Radscorpion) istilasi baslatir."
+            : "Immediately spawns a burrowing Radscorpion infestation in a vault room."; } }
+        public override string Format { get { return "/eventradscorpions"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.Radscorpion);
+        }
+    }
+
+    /// <summary>Kostebek faresi istilasi baslat.</summary>
+    internal class EventTriggerMoleratsCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Kostebek Faresi Istilasi" : "Trigger Molerats Infestation"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasa odasinda hemen bir Kostebek Faresi (Molerat) istilasi baslatir."
+            : "Immediately spawns a Molerat infestation in a vault room."; } }
+        public override string Format { get { return "/eventmolerats"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.Molerat);
+        }
+    }
+
+    /// <summary>Hamambocegi istilasi baslat.</summary>
+    internal class EventTriggerRadroachesCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Hamambocegi Istilasi" : "Trigger Radroaches Infestation"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasa odasinda hemen bir Radyasyon Hamambocegi (Radroach) istilasi baslatir."
+            : "Immediately spawns a Radroach infestation in a vault room."; } }
+        public override string Format { get { return "/eventradroaches"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.Radroach);
+        }
+    }
+
+    /// <summary>Yangin felaketi baslat.</summary>
+    internal class EventTriggerFireCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Yangin Baslat" : "Trigger Vault Fire"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasa odasinda hemen bir yangin felaketi baslatir."
+            : "Immediately ignites an emergency fire in a vault room."; } }
+        public override string Format { get { return "/eventfire"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.TriggerEmergency(ERoomEmergencyMode.Fire);
+        }
+    }
+
+    /// <summary>Gizemli yabanciyi cagir.</summary>
+    internal class EventSpawnStrangerCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Gizemli Yabanciyi Cagir" : "Spawn Mysterious Stranger"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Gizemli Yabanciyi piyano sesiyle birlikte hemen kasada ortaya cikarir, tiklayarak ucretsiz kapak alabilirsiniz."
+            : "Immediately spawns the Mysterious Stranger in the vault with piano chime, ready to be tapped for free caps."; } }
+        public override string Format { get { return "/eventstranger"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.SpawnMysteriousStranger();
+        }
+    }
+
+    /// <summary>Sise ve Kapakcigi cagir.</summary>
+    internal class EventSpawnBottleAndCappyCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Sise ve Kapakcigi Cagir" : "Call Bottle & Cappy Visit"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Nuka-World maskotlari Bottle & Cappy'yi kasaya nese ve kapak/quantum getirmeleri icin cagirir."
+            : "Immediately summons Nuka-World mascots Bottle & Cappy to dance and give caps/quantum."; } }
+        public override string Format { get { return "/eventbottleandcappy"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return false; } }
+        public override bool HasConfig { get { return false; } }
+        public override void Execute(CommandInput message)
+        {
+            EventManagerController.SpawnBottleAndCappy();
+        }
+    }
+
+    /// <summary>Felaket ve baskinlari otomatik savustur.</summary>
+    internal class EventAutoDefendToggleCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Otomatik Olay Savusturma" : "Auto-Defend Incidents"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Kasada herhangi bir yangin, istila veya baskin basladiginda onu aninda otomatik bitirir."
+            : "Automatically and instantly eliminates any fire, infestation, or invader raid the moment it starts."; } }
+        public override string Format { get { return "/eventautodefend"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+        public override bool IsEnabled
+        {
+            get { return EventManagerController.AutoDefendEnabled; }
+            set { EventManagerController.AutoDefendEnabled = value; }
+        }
+        public override void Execute(CommandInput message)
+        {
+            IsEnabled = !IsEnabled;
+            SaveConfig();
+        }
+    }
+
+    /// <summary>Gizemli Yabanci ve maskotlari otomatik tikla.</summary>
+    internal class EventAutoTapVisitorsToggleCommand : CustomCommand
+    {
+        public override string Name { get { return MenuPlugin.IsTurkish ? "Ziyaretcileri Otomatik Yakala" : "Auto-Tap Mysterious Stranger"; } }
+        public override string Description { get { return MenuPlugin.IsTurkish
+            ? "Gizemli Yabanci veya Bottle & Cappy belirdiginde onlari aninda tiklayarak ucretsiz kapak ve odulleri toplar."
+            : "Automatically taps Mysterious Stranger and Bottle & Cappy the moment they appear for free caps and rewards."; } }
+        public override string Format { get { return "/eventautotap"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Olay Yoneticisi" : "Events"; } }
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+        public override bool IsEnabled
+        {
+            get { return EventManagerController.AutoTapVisitorsEnabled; }
+            set { EventManagerController.AutoTapVisitorsEnabled = value; }
+        }
+        public override void Execute(CommandInput message)
+        {
+            IsEnabled = !IsEnabled;
+            SaveConfig();
+        }
+    }
+
     /// <summary>
     /// Turkce ve Ingilizce ceviri sozlukleri.
     /// </summary>
@@ -858,7 +1188,8 @@ namespace FSAutoQuest.Menu
             { "Help", "Yardim" },
             { "FSAutoQuest", "Otomatik Gorev" },
             { "Themes", "Temalar" },
-            { "V.A.T.S.", "V.A.T.S. (Zaman)" }
+            { "V.A.T.S.", "V.A.T.S. (Zaman)" },
+            { "Events", "Olay Yoneticisi" }
         };
 
         private static readonly Dictionary<string, string> ReverseCategories = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -883,6 +1214,23 @@ namespace FSAutoQuest.Menu
             { "No Rush Fail", "Hizlandirma Asla Basarisiz Olmasin" },
             { "Override Incident Chance", "Olay Ihtimalini Sabitle" },
             { "Set Incident Chance", "Olay Ihtimali Oranini Belirle" },
+
+            // Event Manager (Olay Yoneticisi)
+            { "Stop All Incidents & Defeat Invaders", "Tum Olaylari & Baskinlari Bitir" },
+            { "Trigger Raiders Attack", "Akinci Baskini Baslat" },
+            { "Trigger Deathclaws Attack", "Olum Pencesi Baskini Baslat" },
+            { "Trigger Aliens Attack", "Uzayli Baskini Baslat" },
+            { "Trigger Feral Ghouls Attack", "Vahsi Ghoul Baskini Baslat" },
+            { "Trigger Synths Attack", "Synth Baskini Baslat" },
+            { "Trigger Enclave Attack", "Enclave Baskini Baslat" },
+            { "Trigger Radscorpions Infestation", "Radyasyon Akrebi Istilasi" },
+            { "Trigger Molerats Infestation", "Kostebek Faresi Istilasi" },
+            { "Trigger Radroaches Infestation", "Hamambocegi Istilasi" },
+            { "Trigger Vault Fire", "Yangin Baslat" },
+            { "Spawn Mysterious Stranger", "Gizemli Yabanciyi Cagir" },
+            { "Call Bottle & Cappy Visit", "Sise ve Kapakcigi Cagir" },
+            { "Auto-Defend Incidents", "Otomatik Olay Savusturma" },
+            { "Auto-Tap Mysterious Stranger", "Ziyaretcileri Otomatik Yakala" },
 
             // Dwellers
             { "Create Random Custom Dweller", "Rastgele Ozel Sakin Olustur" },
@@ -1018,7 +1366,24 @@ namespace FSAutoQuest.Menu
             { "BindKeyForCommand", "Herhangi bir hile butonuna klavyeden kisayol tusu atar." },
             { "ListCommands", "Konsolda kullanilabilecek tum komutlari listeler." },
             { "SetCommandWindow", "Metin tabanli hile komut satirini acar." },
-            { "SetPersistance", "Ayarlarin Kaliciligini Ac/Kapat" }
+            { "SetPersistance", "Ayarlarin Kaliciligini Ac/Kapat" },
+
+            // Event Manager (Olay Yoneticisi)
+            { "Stop All Incidents & Defeat Invaders", "Kasada devam eden tum yanginlari sondurur, istilalari temizler ve saldiran tum akinci, uzayli ve olum pencelerini aninda yok eder." },
+            { "Trigger Raiders Attack", "Kasaya hemen bir Akinci (Raider) saldirisi baslatir." },
+            { "Trigger Deathclaws Attack", "Kasaya hemen vahsi bir Olum Pencesi (Deathclaw) saldirisi baslatir." },
+            { "Trigger Aliens Attack", "Kasaya hemen lazerli bir Uzayli (Alien) saldirisi baslatir." },
+            { "Trigger Feral Ghouls Attack", "Kasaya hemen hizli bir Vahsi Ghoul (Feral Ghoul) saldirisi baslatir." },
+            { "Trigger Synths Attack", "Kasaya hemen bir Institute Synth saldirisi baslatir." },
+            { "Trigger Enclave Attack", "Kasaya hemen bir Enclave Askeri ve Guc Zirhi saldirisi baslatir." },
+            { "Trigger Radscorpions Infestation", "Kasa odasinda hemen enerji emen bir Radyasyon Akrebi (Radscorpion) istilasi baslatir." },
+            { "Trigger Molerats Infestation", "Kasa odasinda hemen bir Kostebek Faresi (Molerat) istilasi baslatir." },
+            { "Trigger Radroaches Infestation", "Kasa odasinda hemen bir Radyasyon Hamambocegi (Radroach) istilasi baslatir." },
+            { "Trigger Vault Fire", "Kasa odasinda hemen bir yangin felaketi baslatir." },
+            { "Spawn Mysterious Stranger", "Gizemli Yabanciyi piyano sesiyle birlikte hemen kasada ortaya cikarir, tiklayarak ucretsiz kapak alabilirsiniz." },
+            { "Call Bottle & Cappy Visit", "Nuka-World maskotlari Bottle & Cappy'yi kasaya nese ve kapak/quantum getirmeleri icin cagirir." },
+            { "Auto-Defend Incidents", "Kasada herhangi bir yangin, istila veya baskin basladiginda onu aninda otomatik bitirir." },
+            { "Auto-Tap Mysterious Stranger", "Gizemli Yabanci veya Bottle & Cappy belirdiginde onlari aninda tiklayarak ucretsiz kapak ve odulleri toplar." }
         };
 
         static Localization()
@@ -1036,6 +1401,8 @@ namespace FSAutoQuest.Menu
             ReverseCategories["Otomatik Görev"] = "FSAutoQuest";
             ReverseCategories["Otomatik Gorev"] = "FSAutoQuest";
             ReverseCategories["Temalar"] = "Themes";
+            ReverseCategories["Olay Yöneticisi"] = "Events";
+            ReverseCategories["Olay Yoneticisi"] = "Events";
         }
 
         public static string TranslateCategory(string category)
