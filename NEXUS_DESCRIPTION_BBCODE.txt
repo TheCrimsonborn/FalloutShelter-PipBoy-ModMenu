@@ -1,14 +1,16 @@
 [size=5][b]Pip-Boy Terminal Mod Menu & Ultimate Cheats (10 Themes & Bilingual)[/b][/size]
-[i]The definitive Pip-Boy CRT terminal overhaul, integrated V.A.T.S. time acceleration, automated questing, crash-free dweller leveling, and 47+ integrated cheats for Fallout Shelter.[/i]
+[i]The definitive RobCo Pip-Boy CRT terminal overhaul, dedicated Event Manager (trigger Raiders, Deathclaws, Aliens & auto-defend), 100% full-dungeon quest sweeper with smart enemy auto-kill & recipe collector, integrated V.A.T.S. time acceleration, crash-free dweller leveling, permanent settings persistence, and 50+ integrated cheats for Fallout Shelter.[/i]
 
 [line]
 
 [size=4][b]Description[/b][/size]
-Tired of the clunky, generic mod menus that feel completely out of place in Fallout Shelter?
+Tired of generic, immersion-breaking mod menus that feel completely out of place in Fallout Shelter?
 
-This mod completely transforms the in-game cheat and utility experience into an authentic, immersive [b]RobCo Pip-Boy 3000 Terminal[/b]. Featuring [b]10 customizable Fallout faction & holiday themes[/b], smooth interactive button glows, dynamic resolution scaling, and [b]full bilingual support[/b] (English & Turkish with instant one-click switching).
+This mod completely transforms your game into an authentic, deeply atmospheric [b]RobCo Pip-Boy 3000 Terminal[/b]. Featuring [b]10 customizable Fallout faction & holiday themes[/b], interactive button glow and CRT scanlines, dynamic UI scaling, full settings persistence, and [b]full bilingual support[/b] (English & Turkish with instant one-click switching).
 
-In addition to visual polish, this mod fixes critical engine crashes from legacy mods (such as the notorious freeze when leveling large vaults), introduces a built-in background [b]Quest Automation engine[/b], and natively integrates [b]V.A.T.S. (Vault Accelerated Time System)[/b] for instant time control with smart auto-pausing.
+Beyond aesthetics, this mod fixes critical engine crashes from legacy mods (such as the notorious freeze when leveling large vaults or clicking resource buttons), provides an advanced [b]Full-Dungeon Quest Automation & Sweeper Engine[/b] with smart enemy auto-kill and auto-recipe collection, and natively integrates [b]V.A.T.S. (Vault Accelerated Time System)[/b] for effortless time control with smart auto-pausing.
+
+[b]For full change log check:[/b] [url=https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu/releases]https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu/releases[/url]
 
 [line]
 
@@ -17,61 +19,86 @@ In addition to visual polish, this mod fixes critical engine crashes from legacy
 [size=3][b]1. 10 Authentic Fallout Faction & Holiday Themes[/b][/size]
 Switch instantly between 10 carefully designed CRT color schemes using the header arrows:
 [list]
-[*] [b]Brotherhood of Steel (BoS):[/b] Tactical dark steel with high-voltage amber CRT glow.
-[*] [b]The Institute:[/b] Obsidian synth frame with sleek cybernetic cyan lasers.
-[*] [b]Minutemen:[/b] Colonial Commonwealth navy with Freedom Radio golden yellow.
-[*] [b]The Railroad:[/b] Covert stealth charcoal with clandestine lantern amber.
-[*] [b]Party Mode (Nuka-World):[/b] Arcade neon hot pink with Quantum blue highlights.
-[*] [b]Vault 33:[/b] Classic Vault-Tec overseer royal navy and golden yellow.
-[*] [b]Halloween Special:[/b] Spooky midnight purple with radioactive jack-o'-lantern orange.
-[*] [b]Christmas Celebration:[/b] Evergreen pine with festive holiday candy-apple red.
-[*] [b]Thanksgiving Gathering:[/b] Warm hearth brown with roasted harvest amber.
-[*] [b]New Vegas (Mr. House):[/b] Lucky 38 penthouse black with classic Strip neon gold.
+[*][b]Brotherhood of Steel (BoS):[/b] Tactical dark steel with high-voltage amber CRT glow.[/*]
+[*][b]The Institute:[/b] Obsidian synth frame with sleek cybernetic cyan lasers.[/*]
+[*][b]Minutemen:[/b] Colonial Commonwealth navy with Freedom Radio golden yellow.[/*]
+[*][b]The Railroad:[/b] Covert stealth charcoal with clandestine lantern amber.[/*]
+[*][b]Party Mode (Nuka-World):[/b] Arcade neon hot pink with Quantum blue highlights.[/*]
+[*][b]Vault 33:[/b] Classic Vault-Tec overseer royal navy and golden yellow.[/*]
+[*][b]Halloween Special:[/b] Spooky midnight purple with radioactive jack-o'-lantern orange.[/*]
+[*][b]Christmas Celebration:[/b] Evergreen pine with festive holiday candy-apple red.[/*]
+[*][b]Thanksgiving Gathering:[/b] Warm hearth brown with roasted harvest amber.[/*]
+[*][b]New Vegas (Mr. House):[/b] Lucky 38 penthouse black with classic Strip neon gold.[/*]
 [/list]
 
-[size=3][b]2. Authentic Pip-Boy Terminal UI & Controls[/b][/size]
+[size=3][b]2. Authentic Pip-Boy Terminal UI & Control Engine[/b][/size]
 [list]
-[*] [b]CRT Glass & Hover Effects:[/b] No more ugly default grey Unity buttons. Every button features CRT top reflections, interactive hover luminescence, and distinct toggle beacon states.
-[*] [b]No More Tab Overflow:[/b] Smart dynamic multi-row category wrapping ensures all 14 tabs stay cleanly inside the frame on all screen resolutions.
-[*] [b]Unobtrusive HUD Button:[/b] Custom-themed Pip-Boy button positioned neatly below the green dweller count gear, preventing HUD overlap.
-[*] [b]UI Scale Slider:[/b] Freely resize the entire menu on the fly (50% to 200%) to match 1080p, 1440p, or 4K monitors.
+[*][b]CRT Glass & Hover Effects:[/b] No more default grey Unity buttons. Every button features CRT curved glass reflections, interactive hover luminescence, and distinct toggle beacon states.[/*]
+[*][b]No More Tab Overflow:[/b] Smart dynamic multi-row category wrapping ensures all tabs stay cleanly inside the frame on all screen resolutions.[/*]
+[*][b]Themed Parameter Dialogs:[/b] Custom Pip-Boy retro input popups with quick preset buttons ([b]+10k[/b], [b]+100k[/b], [b]Max 999k[/b]) for entering Caps, Quantum, Lunchboxes, and Pet Carriers without crashing.[/*]
+[*][b]Unobtrusive HUD Button:[/b] Custom-themed Pip-Boy button positioned neatly below the green dweller count gear, preventing HUD overlap.[/*]
+[*][b]UI Scale Slider:[/b] Freely resize the entire menu on the fly (50% to 200%) to match 1080p, 1440p, or 4K monitors.[/*]
 [/list]
 
-[size=3][b]3. Full Bilingual Support (English & Turkish)[/b][/size]
+[size=3][b]3. Full Settings & Toggle Persistence Engine[/b][/size]
 [list]
-[*] One-click toggle button ([b]LANG: EN / DİL: TR[/b]) in the top right corner.
-[*] All 47+ cheat names, 12 categories, faction mottos, and detailed bottom tooltips are fully localized with zero language leakage.
+[*][b]Zero Reset on Restart:[/b] All your active cheat toggles (Free Crafting, No Rush Fail, Overpowered Pets, Infinite Scrap, Auto Quest features, etc.) remain saved exactly as you left them when you quit the game.[/*]
+[*][b]Immediate Disk Flushes:[/b] Button clicks and setting changes write to BepInEx configuration immediately on disk with invariant config identifiers, preventing language-dependent save corruption.[/*]
+[*][b]Persistent Language & Scale:[/b] Your selected language (TR/EN) and UI scale slider are permanently preserved between game sessions.[/*]
 [/list]
 
-[size=3][b]4. Crash-Safe Dweller Leveling (Safe Max Level Dwellers)[/b][/size]
+[size=3][b]4. Full Bilingual Support (English & Turkish)[/b][/size]
 [list]
-[*] Fixes the game engine crash from older mods where setting dwellers to Level 50 caused immediate frame drops, freezes, or crashes in medium-to-large vaults.
-[*] Safely processes up to 200 dwellers smoothly with zero stutter or lag.
+[*]One-click toggle button ([b]LANG: EN / DİL: TR[/b]) in the top right corner.[/*]
+[*]All 47+ cheat names, categories, faction mottos, parameter dialogs, and detailed tooltips are fully localized with zero language leakage.[/*]
 [/list]
 
-[size=3][b]5. FSAutoQuest (Background Quest Automation)[/b][/size]
+[size=3][b]5. FSAutoQuest (100% Full-Dungeon Sweeper & Quest Automation)[/b][/size]
+An all-in-one questing powerhouse built right into the Pip-Boy under the [b]FSAutoQuest / Otomatik Görev[/b] tab:
 [list]
-[*] Sends your wasteland teams on quests automatically.
-[*] Completes combat rooms, collects all legendary/rare loot, and navigates dwellers safely back to the vault in the background.
-[*] Includes [b]Bypass Quest Requirements[/b] to let any dweller embark on high-level quests regardless of SPECIAL or gear restrictions.
+[*][b]100% Full-Dungeon Sweeper:[/b] Automatically sweeps through every single room in the entire quest layout, ensuring complete exploration.[/*]
+[*][b]Guaranteed Zero Loot Left Behind:[/b] Opens 100% of room containers (safes, desks, lockers), claims all dead enemy corpse drops, and gathers all room completion rewards.[/*]
+[*][b]Smart Auto-Kill Enemy NPCs (/autokill):[/b] Safely eliminates hostile creatures (Raiders, Deathclaws, Radscorpions, Ghouls, Enclave, Synths, Aliens) instantly while providing a [b]100% safeguard for player dwellers, rescued wasteland dwellers, and friendly dialogue NPCs[/b]. Satisfies 'Kill X Enemies' / 'Kill Boss' objectives and awards full XP.[/*]
+[*][b]Auto-Collect Recipe Fragments & Popups (/autocollect):[/b] Automatically claims and dismisses 'A Dweller found a Recipe Fragment!' popups ([font=Courier New]ThemeRecipeLootWindow[/font]), weapon/outfit blueprints ([font=Courier New]RecipeLootWindow[/font]), and post-quest arrival popups so you never get stuck on collection screens during AFK farming.[/*]
+[*][b]Quest God Mode & Instant Revive:[/b] Dwellers on quests become completely invulnerable and instantly revive, preventing team wipes or lost progress.[/*]
+[*][b]Instant Return to Vault Door:[/b] Skips the tedious wasteland return travel time, placing returning quest teams at the Vault door instantly.[/*]
+[*][b]Bypass Quest Requirements:[/b] Unconditionally unlocks every quest regardless of dweller level (e.g. Level 45+), weapon types, outfits, or SPECIAL stat prerequisites.[/*]
+[*][b]Manual vs Auto Return Toggle:[/b] By default, keeps the quest completion window open so you can admire your collected loot, or switch on [b]Auto Return to Vault[/b] for 100% hands-free farming.[/*]
 [/list]
 
-[size=3][b]6. 47+ Ultimate Cheats & Utility Tools[/b][/size]
+[size=3][b]6. Crash-Safe Dweller Leveling (Safe Max Level Dwellers)[/b][/size]
 [list]
-[*] [b]Resources:[/b] Infinite Caps, Nuka Quantum, Lunchboxes, Pet Carriers, Mr. Handy Boxes, Starter Packs, Stimpaks/Radaways.
-[*] [b]Dwellers:[/b] Spawn custom/legendary dwellers, max SPECIAL attributes, instant adult/pregnancy, 100% happiness, remove population caps.
-[*] [b]Rooms & Crafting:[/b] Free crafting (no scrap/quantum needed), unlock all weapon/outfit recipes, remove room population requirements, 0% rush failure.
-[*] [b]Pets & Weapons:[/b] Overpowered pets (x1000 multiplier effect), maximum weapon damage overrides.
-[*] [b]Saves:[/b] Decrypt vault save files directly to readable .json format for easy custom editing, and re-encrypt back into the game.
+[*]Completely fixes the notorious game engine crash from legacy mods where batch-leveling dwellers to Level 50 caused immediate frame drops, freezes, or crashes in medium-to-large vaults.[/*]
+[*]Safely levels up to 200 dwellers simultaneously with zero lag or stutter.[/*]
 [/list]
 
-[size=3][b]7. Integrated V.A.T.S. (Vault Accelerated Time System)[/b][/size]
+[size=3][b]7. 47+ Ultimate Cheats & Utility Tools[/b][/size]
 [list]
-[*] [b]Time Acceleration (10x Boost & 50x Time Warp):[/b] Accelerates the game's internal time clock ([font=Courier New]TimeMgr.m_timeScale[/font]) to finish dweller training, room production, weapon/outfit crafting, pregnancies, and wasteland explorations in seconds without modifying save files.
-[*] [b]Dual Control (GUI & Hotkeys):[/b] Toggle speeds directly from the dedicated Pip-Boy V.A.T.S. menu tab or use hotkeys ([b]Ctrl + Alt[/b] for Boost, [b]Shift + Alt[/b] for Warp, or hold [b]Left Ctrl[/b]). Menu buttons and hotkeys stay synchronized in real time.
-[*] [b]Smart Auto-Pause:[/b] Automatically reverts to normal vanilla speed (1x) during vault emergencies (fires, radscorpions, raiders, deathclaws) and pauses completely when the Mysterious Stranger appears so you never miss him.
-[*] [b]CRT Screen Overlay:[/b] Displays retro RobCo scanline bands and real-time elapsed game time counters ([i]+1d 14h 25m[/i]) while boosted.
-[*] [b]Custom Multipliers & Anim Speeds:[/b] Set custom speeds with retro CRT modal dialogs and quick preset buttons ([b]2x[/b], [b]5x[/b], [b]10x[/b], [b]25x[/b], [b]50x[/b], [b]100x[/b]).
+[*][b]Resources:[/b] Add/Set Caps, Nuka-Cola Quantum, Lunchboxes, Pet Carriers, Mr. Handy Boxes, Starter Packs, Stimpaks, and Radaways with quick preset modal dialogs.[/*]
+[*][b]Dwellers:[/b] Spawn legendary dwellers, max out SPECIAL stats, trigger instant adult age, instant pregnancy, lock 100% happiness, and bypass vault population caps.[/*]
+[*][b]Rooms & Crafting:[/b] Free crafting (zero scrap or Quantum needed), unlock all weapon/outfit recipes, remove room population requirements, and achieve 0% rush failure.[/*]
+[*][b]Pets & Weapons:[/b] Overpowered pets (x1000 multiplier effect), maximum weapon damage overrides, and infinite scrap storage.[/*]
+[*][b]Save Engine:[/b] Decrypt vault save files directly to clean, readable .json files for custom editing, and re-encrypt back into the game with suppressed debug log spam.[/*]
+[/list]
+
+[size=3][b]8. Integrated V.A.T.S. (Vault Accelerated Time System)[/b][/size]
+[list]
+[*][b]Time Acceleration (10x Boost & 50x Time Warp):[/b] Accelerates the game's internal time clock ([font=Courier New]TimeMgr.m_timeScale[/font]) to finish dweller training, room production, weapon/outfit crafting, pregnancies, and wasteland explorations in seconds without modifying save files.[/*]
+[*][b]Dual Control (GUI & Hotkeys):[/b] Toggle speeds directly from the dedicated Pip-Boy V.A.T.S. menu tab or use hotkeys ([b]Ctrl + Alt[/b] for Boost, [b]Shift + Alt[/b] for Warp, or hold [b]Left Ctrl[/b]). Menu buttons and hotkeys stay synchronized in real time.[/*]
+[*][b]Smart Auto-Pause:[/b] Automatically reverts to normal vanilla speed (1x) during vault emergencies (fires, radscorpions, raiders, deathclaws) and pauses completely when the Mysterious Stranger appears so you never miss him.[/*]
+[*][b]CRT Screen Overlay:[/b] Displays retro RobCo scanline bands and real-time elapsed game time counters ([i]+1d 14h 25m[/i]) while boosted.[/*]
+[*][b]Custom Multipliers & Anim Speeds:[/b] Set custom speeds with retro CRT modal dialogs and quick preset buttons ([b]2x[/b], [b]5x[/b], [b]10x[/b], [b]25x[/b], [b]50x[/b], [b]100x[/b]).[/*]
+[/list]
+
+[size=3][b]9. Dedicated Event Manager (Vault Raids, Emergencies & Visitors on Demand)[/b][/size]
+Take complete control over your wasteland vault's encounters and incidents from the dedicated [b]Events / Olay Yöneticisi[/b] tab:
+[list]
+[*][b]On-Demand Invader Attacks:[/b] Immediately trigger custom raids breaching the Vault door: Raiders, ferocious Deathclaws, blaster-wielding Aliens, swift Feral Ghouls, Institute Synths, or heavily armored Enclave soldiers.[/*]
+[*][b]On-Demand Room Emergencies:[/b] Trigger burrowing Radscorpion infestations, Molerat swarms, Radroach invasions, or room fires at will.[/*]
+[*][b]Special Encounters on Demand:[/b] Instantly summon the Mysterious Stranger with authentic piano chime to tap for free Caps, or call Nuka-World mascots Bottle & Cappy for dancing and Quantum rewards.[/*]
+[*][b]Stop All Incidents & Defeat Invaders:[/b] One-click instant victory that extinguishes all Vault fires, clears room infestations, and eliminates all hostile raiders, deathclaws, or aliens.[/*]
+[*][b]Auto-Defend Incidents (/eventautodefend):[/b] Automatically and instantly neutralizes fires, infestations, and raids the millisecond they start, keeping your Vault 100% protected (persistent setting).[/*]
+[*][b]Auto-Tap Mysterious Stranger (/eventautotap):[/b] Automatically claims Mysterious Stranger and Bottle & Cappy rewards without searching your Vault (persistent setting).[/*]
 [/list]
 
 [line]
@@ -79,55 +106,57 @@ Switch instantly between 10 carefully designed CRT color schemes using the heade
 [size=4][b]Installation Instructions[/b][/size]
 
 [size=3][b]For Most Users (Full Pack - Recommended):[/b][/size]
-[olist]
-[*] Download the [b]Full Pack[/b] from the Files tab.
-[*] Open your Fallout Shelter root game directory:
-[font=Courier New]<Default: C:\Program Files (x86)\Steam\steamapps\common\Fallout Shelter>[/font]
-[*] Extract all contents of the zip file directly into the game folder (so that [b]winhttp.dll[/b] and the [b]BepInEx[/b] folder sit next to [b]FalloutShelter.exe[/b]).
-[*] Launch the game through Steam!
-[/olist]
+[list=1]
+[*]Download the [b]Full Pack[/b] from the Files tab.[/*]
+[*]Open your Fallout Shelter root game directory:
+[font=Courier New]<Default: C:\Program Files (x86)\Steam\steamapps\common\Fallout Shelter>[/font][/*]
+[*]Extract all contents of the zip file directly into the game folder (so that [b]winhttp.dll[/b] and the [b]BepInEx[/b] folder sit next to [b]FalloutShelter.exe[/b]).[/*]
+[*]Launch the game through Steam![/*]
+[/list]
 
 [size=3][b]For Users Who Already Have BepInEx Installed:[/b][/size]
-[olist]
-[*] Download the [b]Plugins Only[/b] archive.
-[*] Extract the contents directly into your game's [font=Courier New]BepInEx/plugins[/font] folder.
-[/olist]
+[list=1]
+[*]Download the [b]Plugins Only[/b] archive.[/*]
+[*]Extract the contents directly into your game's [font=Courier New]BepInEx/plugins[/font] folder.[/*]
+[/list]
 
 [line]
 
 [size=4][b]How to Use in Game[/b][/size]
 [list]
-[*] Press [b]F4[/b] on your keyboard to toggle the mod menu at any time.
-[*] Alternatively, click the [b][ ⚙ MOD MENU (F4) ][/b] terminal button located just below your dweller count icon in the top left.
-[*] Click [b]LANG: EN / DİL: TR[/b] in the top-right corner of the menu to swap languages instantly.
-[*] Click [b]◄[/b] or [b]►[/b] on the theme bar to switch between the 10 Fallout faction themes.
-[*] Use the [b]V.A.T.S.[/b] tab to toggle time acceleration, or use [b]Ctrl + Alt[/b] / [b]Shift + Alt[/b].
+[*]Press [b]F4[/b] on your keyboard to toggle the Pip-Boy mod menu at any time.[/*]
+[*]Alternatively, click the [b][ ⚙ MOD MENU (F4) ][/b] terminal button located just below your dweller count icon in the top left.[/*]
+[*]Click [b]LANG: EN / DİL: TR[/b] in the top-right corner of the menu to swap languages instantly.[/*]
+[*]Click [b]◄[/b] or [b]►[/b] on the theme bar to cycle through the 10 Fallout faction themes.[/*]
+[*]Use the [b]FSAutoQuest[/b] tab to configure dungeon sweeping, auto-kill, and auto-collect.[/*]
+[*]Use the [b]V.A.T.S.[/b] tab or hotkeys ([b]Ctrl + Alt[/b] / [b]Shift + Alt[/b]) to control game time acceleration.[/*]
 [/list]
 
 [line]
 
 [size=4][b]Uninstallation[/b][/size]
-Delete [font=Courier New]BepInEx[/font], [font=Courier New]winhttp.dll[/font], [font=Courier New]doorstop_config.ini[/font], and [font=Courier New].doorstop_version[/font] from your game directory. Your game will return to 100% vanilla.
+Delete [font=Courier New]BepInEx[/font], [font=Courier New]winhttp.dll[/font], [font=Courier New]doorstop_config.ini[/font], and [font=Courier New].doorstop_version[/font] from your game directory. Your game will return to 100% vanilla with zero leftover files.
 
 [line]
 
 [size=4][b]Requirements[/b][/size]
 [list]
-[*] Fallout Shelter (Steam PC version).
-[*] BepInEx 5.4.x (Already pre-packaged and configured in the Full Pack download — no separate download required!).
+[*]Fallout Shelter (Steam PC version).[/*]
+[*]BepInEx 5.4.x (Already pre-packaged and configured in the Full Pack download — no separate download required!).[/*]
 [/list]
 
 [line]
 
 [size=4][b]Shout outs & Credits[/b][/size]
 [list]
-[*] [b]Toemmsen96:[/b] Huge credits and thanks for the original groundwork on CTDynamicModMenu and FSCheats.
-[*] [b]YourDoctor1:[/b] Huge credits for the outstanding [url=https://www.nexusmods.com/falloutshelter/mods/148]V.A.T.S. - Vault Accelerated Time System[/url] mod.
-[*] [b]BepInEx Team:[/b] For the incredible Unity modding and hooking framework.
-[*] [b]Bethesda Game Studios:[/b] For Fallout Shelter and the legendary Fallout universe.
+[*][b]Toemmsen96:[/b] Huge credits and thanks for the original groundwork on CTDynamicModMenu and FSCheats.[/*]
+[*][b]YourDoctor1:[/b] Huge credits for the outstanding [url=https://www.nexusmods.com/falloutshelter/mods/148]V.A.T.S. - Vault Accelerated Time System[/url] mod.[/*]
+[*][b]BepInEx Team:[/b] For the incredible Unity modding and hooking framework.[/*]
+[*][b]Bethesda Game Studios:[/b] For Fallout Shelter and the legendary Fallout universe.[/*]
 [/list]
 
 [line]
 
-[size=4][b]GitHub[/b][/size]
-[url=https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu]https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu[/url]
+[size=4][b]Changelog & GitHub[/b][/size]
+[b]For full change log check:[/b] [url=https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu/releases]https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu/releases[/url]
+[b]Source Code Repository:[/b] [url=https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu]https://github.com/TheCrimsonborn/FalloutShelter-PipBoy-ModMenu[/url]

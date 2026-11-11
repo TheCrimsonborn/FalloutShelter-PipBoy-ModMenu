@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace FSAutoQuest.Menu
 {
-    [BepInPlugin("com.halil.fsautoquest.menu", "FSAutoQuest - Turkce Mod Menu & Dugmeler", "0.3.0")]
+    [BepInPlugin("com.halil.fsautoquest.menu", "FSAutoQuest - Turkce Mod Menu & Dugmeler", "0.4.0")]
     [BepInDependency("com.halil.fsautoquest")]
     [BepInDependency("Toemmsen96.CTDynamicModMenu", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("toemmsen.FSCheats", BepInDependency.DependencyFlags.SoftDependency)]

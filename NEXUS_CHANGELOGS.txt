@@ -192,4 +192,28 @@ Ensures completely uninterrupted AFK quest farming and wasteland operations.
 - Görev sonu ve çorak toprak varış pencerelerini (LunchBoxCollectedWindow, ArrivalWindow) otomatik onaylayarak ekranın kilitlenmesini engeller.
 - Oyun modal pencereler sebebiyle duraklasa dahi (Unscaled Time) arka planda kesintisiz çalışır.
 - Tamamen kesintisiz AFK görev ve ganimet toplama imkanı sağlar.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.4.0
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Integrated dedicated Event Manager (Olay Yöneticisi) tab into the RobCo Pip-Boy Mod Menu.
+On-demand Vault Invader Attacks: trigger Raiders, Deathclaws, Aliens, Feral Ghouls, Synths, and Enclave attacks at the Vault door.
+On-demand Vault Emergencies: trigger Radscorpion, Molerat, and Radroach infestations, or ignite room fires.
+Special Visitors on Demand: summon Mysterious Stranger with piano chime or call Bottle & Cappy for dancing and rewards.
+Stop All Incidents & Defeat Invaders: instantly extinguishes all fires, clears room infestations, and eliminates all hostile raiders/aliens.
+Auto-Defend Incidents (/eventautodefend): automatically and instantly neutralizes fires, infestations, and raids the moment they start (persistent setting).
+Auto-Tap Mysterious Stranger (/eventautotap): automatically taps Mysterious Stranger and Bottle & Cappy the instant they appear for free caps/quantum (persistent setting).
+Full bilingual support (TR/EN) across all Event Manager commands, dialogs, and tooltips.
+
+[Türkçe Açıklaması]:
+- Pip-Boy mod menüsüne özel 'Olay Yöneticisi' (Event Manager) sekmesi eklendi.
+- İsteğe Bağlı Kapı Baskınları: Akıncılar, Ölüm Pençeleri, Uzaylılar, Vahşi Ghoullar, Synthler ve Enclave saldırılarını anında başlatabilme.
+- İsteğe Bağlı Oda Felaketleri: Radyasyon Akrebi, Köstebek Faresi, Hamamböceği istilaları veya yangın başlatabilme.
+- Özel Ziyaretçiler: Gizemli Yabancıyı (Mysterious Stranger) piyano melodisiyle çağırabilme, Bottle & Cappy maskotlarını kasaya getirebilme.
+- Tüm Olayları Bitir & Düşmanları Kov: Tek tıkla yangınları söndürür, istilaları temizler ve saldıran tüm düşmanları anında yok eder.
+- Otomatik Olay Savuşturma (/eventautodefend): Kasada herhangi bir felaket veya baskın çıktığı anda otomatik yok eder (kalıcı ayar).
+- Ziyaretçileri Otomatik Yakala (/eventautotap): Gizemli Yabancı veya Bottle & Cappy belirdiğinde otomatik tıklayıp kapakları ve ödülleri toplar (kalıcı ayar).
+- Tüm yeni komutlar için %100 Türkçe ve İngilizce çift dil desteği sağlandı.
 ================================================================================

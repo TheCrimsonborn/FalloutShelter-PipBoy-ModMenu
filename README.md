@@ -41,11 +41,26 @@ Switch themes instantly with a single click using header navigation arrows:
 * Fixes the notorious FSCheat crash where leveling 20+ dwellers caused thread blocking and game freezes.
 * Safely processes up to 200 dwellers smoothly to Level 50 with zero frame drops.
 
-### 5. 🗺️ FSAutoQuest & Quest Overhauls
-* **Background Quest Automation:** Sends wasteland teams on quests automatically, clears combat rooms, collects legendary/rare loot, and returns dwellers safely to the vault.
-* **Bypass Quest Requirements:** Removes all dweller level requirements, required weapons (Gauss Rifle, etc.), outfits, and SPECIAL stat thresholds so you can start ANY quest with ANY dweller immediately!
+### 5. 🗺️ FSAutoQuest (100% Full-Dungeon Sweeper & Automation)
+* **100% Dungeon Sweeper:** Explores every room in quest layouts, sweeps 100% of containers (safes, desks, lockers), claims enemy corpse loot, and leaves zero items behind.
+* **Smart Auto-Kill (/autokill):** Instantly eliminates hostile creatures while strictly protecting player dwellers, rescued wastelanders, and dialogue NPCs. Satisfies boss/kill objectives with full XP.
+* **Auto-Collect Recipes & Popups (/autocollect):** Automatically claims theme recipe fragments, blueprints, and closes post-quest dialogs during AFK farming.
+* **Quest God Mode & Instant Return:** Dwellers become invulnerable with instant revive, and returning teams skip wasteland travel to appear directly at the Vault door.
+* **Bypass Quest Requirements:** Removes all dweller level requirements, required weapons (Gauss Rifle, etc.), outfits, and SPECIAL stat thresholds.
 
-### 6. ⚡ 48+ In-Game Cheats & Tweaks
+### 6. ⏱️ Integrated V.A.T.S. (Vault Accelerated Time System)
+* **10x Time Boost & 50x Time Warp:** Accelerate production, training, crafting, and wasteland exploration without save editing.
+* **Smart Auto-Pause:** Resets to 1.0x during disasters (fires, raiders, radscorpions, deathclaws) and pauses when the Mysterious Stranger appears.
+* **CRT HUD Overlay:** Real-time elapsed time counters and scanline effects while boosted.
+
+### 7. 🚨 Dedicated Event Manager (Raids, Disasters & Encounters on Demand)
+* **On-Demand Invader Attacks:** Trigger custom attacks at the Vault door: Raiders, ferocious Deathclaws, Alien invaders, Feral Ghouls, Institute Synths, and Enclave soldiers.
+* **On-Demand Room Emergencies:** Trigger Radscorpion infestations, Molerat swarms, Radroaches, or room fires at will.
+* **Summon Special Visitors:** Call the Mysterious Stranger with piano chime or summon Bottle & Cappy for dancing and rewards.
+* **Stop All Incidents & Defeat Invaders:** One-click instant rescue that extinguishes fires, clears infestations, and defeats all attackers.
+* **Auto-Defend (/eventautodefend) & Auto-Tap (/eventautotap):** Permanent toggles for hands-free vault protection and reward harvesting.
+
+### 8. ⚡ 50+ In-Game Cheats & Tweaks
 * **Resources:** Infinite Nuka Caps, Quantum, Lunchboxes, Pet Carriers, Mr. Handy Boxes, Stimpaks, and Radaways.
 * **Dwellers:** Spawn custom/legendary dwellers, max SPECIAL attributes, instant adult/birth, 100% happiness, remove population caps.
 * **Rooms & Crafting:** Free crafting (no scrap/quantum needed), unlock all weapon/outfit recipes, 0% rush failure.

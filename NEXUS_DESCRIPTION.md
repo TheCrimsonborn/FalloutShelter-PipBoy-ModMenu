@@ -60,6 +60,13 @@ Switch instantly between 10 carefully designed CRT color schemes using the heade
 * **CRT Screen Overlay:** Displays retro RobCo scanline bands and real-time elapsed game time counters (`+1d 14h 25m`) while boosted.
 * **Custom Multipliers & Anim Speeds:** Custom speeds with retro CRT modal dialogs and quick preset buttons (`2x`, `5x`, `10x`, `25x`, `50x`, `100x`).
 
+### 8. Dedicated Event Manager (Raids, Emergencies & Visitors on Demand)
+* **On-Demand Invader Attacks:** Trigger custom attacks at the Vault door: Raiders, ferocious Deathclaws, Alien invaders, Feral Ghouls, Institute Synths, and Enclave soldiers.
+* **On-Demand Room Emergencies:** Trigger Radscorpion infestations, Molerat swarms, Radroaches, or room fires at will.
+* **Summon Special Visitors:** Call the Mysterious Stranger with authentic piano chime to tap for free Caps, or call Bottle & Cappy for dancing and Quantum rewards.
+* **Stop All Incidents & Defeat Invaders:** One-click instant rescue that extinguishes fires, clears infestations, and defeats all attackers.
+* **Auto-Defend & Auto-Tap:** Persistent toggles (`/eventautodefend` & `/eventautotap`) for hands-free vault protection and reward harvesting.
+
 ---
 
 ## Installation instructions

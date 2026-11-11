@@ -1,5 +1,5 @@
 [size=5][b]Pip-Boy Terminal Mod Menu & Ultimate Cheats (10 Themes & Bilingual)[/b][/size]
-[i]The definitive RobCo Pip-Boy CRT terminal overhaul, 100% full-dungeon quest sweeper with smart enemy auto-kill & recipe collector, integrated V.A.T.S. time acceleration, crash-free dweller leveling, permanent settings persistence, and 47+ integrated cheats for Fallout Shelter.[/i]
+[i]The definitive RobCo Pip-Boy CRT terminal overhaul, dedicated Event Manager (trigger Raiders, Deathclaws, Aliens & auto-defend), 100% full-dungeon quest sweeper with smart enemy auto-kill & recipe collector, integrated V.A.T.S. time acceleration, crash-free dweller leveling, permanent settings persistence, and 50+ integrated cheats for Fallout Shelter.[/i]
 
 [line]
 
@@ -88,6 +88,17 @@ An all-in-one questing powerhouse built right into the Pip-Boy under the [b]FSAu
 [*][b]Smart Auto-Pause:[/b] Automatically reverts to normal vanilla speed (1x) during vault emergencies (fires, radscorpions, raiders, deathclaws) and pauses completely when the Mysterious Stranger appears so you never miss him.[/*]
 [*][b]CRT Screen Overlay:[/b] Displays retro RobCo scanline bands and real-time elapsed game time counters ([i]+1d 14h 25m[/i]) while boosted.[/*]
 [*][b]Custom Multipliers & Anim Speeds:[/b] Set custom speeds with retro CRT modal dialogs and quick preset buttons ([b]2x[/b], [b]5x[/b], [b]10x[/b], [b]25x[/b], [b]50x[/b], [b]100x[/b]).[/*]
+[/list]
+
+[size=3][b]9. Dedicated Event Manager (Vault Raids, Emergencies & Visitors on Demand)[/b][/size]
+Take complete control over your wasteland vault's encounters and incidents from the dedicated [b]Events / Olay Yöneticisi[/b] tab:
+[list]
+[*][b]On-Demand Invader Attacks:[/b] Immediately trigger custom raids breaching the Vault door: Raiders, ferocious Deathclaws, blaster-wielding Aliens, swift Feral Ghouls, Institute Synths, or heavily armored Enclave soldiers.[/*]
+[*][b]On-Demand Room Emergencies:[/b] Trigger burrowing Radscorpion infestations, Molerat swarms, Radroach invasions, or room fires at will.[/*]
+[*][b]Special Encounters on Demand:[/b] Instantly summon the Mysterious Stranger with authentic piano chime to tap for free Caps, or call Nuka-World mascots Bottle & Cappy for dancing and Quantum rewards.[/*]
+[*][b]Stop All Incidents & Defeat Invaders:[/b] One-click instant victory that extinguishes all Vault fires, clears room infestations, and eliminates all hostile raiders, deathclaws, or aliens.[/*]
+[*][b]Auto-Defend Incidents (/eventautodefend):[/b] Automatically and instantly neutralizes fires, infestations, and raids the millisecond they start, keeping your Vault 100% protected (persistent setting).[/*]
+[*][b]Auto-Tap Mysterious Stranger (/eventautotap):[/b] Automatically claims Mysterious Stranger and Bottle & Cappy rewards without searching your Vault (persistent setting).[/*]
 [/list]
 
 [line]
