@@ -248,4 +248,20 @@ Auto-Collect Rewards now strictly targets only Recipe Fragment popups (ThemeReci
 [Türkçe Açıklaması]:
 - 'Tarif / Ödül Otomatik Topla' (/autocollect) özelliği açıkken Collection / Shop / Redeem (LunchBoxCollectedWindow) ekranının açıldığı anda otomatik kapanmasına ve Lunchbox/Pet Carrier/Mr. Handy paketlerinin açılamamasına neden olan kritik hata düzeltildi.
 - Otomatik Ödül Toplama artık yalnızca Tarif Parçası (ThemeRecipeLootWindow), Şema (RecipeLootWindow) ve görev dönüş karşılama (ArrivalWindow) pencerelerini hedefliyor.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.4.3
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Fixed AutoQuest bug where quests completed too fast (especially with V.A.T.S. time boost active) before EntranceFlowCompleted finished, causing returning teams to get stuck on 'RETRY QUEST' with 0 Stimpaks, 0 Caps, and lost rewards.
+Switched AutoQuest startup and result-window timers to real unscaled time (Time.unscaledTime) and added strict EntranceFlowCompleted / SetQuestSucceeded guards before returning to the Vault.
+Added Quest Box Reward Safeguard: snapshots Lunchbox, Pet Carrier, and Mr. Handy box counts on Quest Complete and automatically restores any dropped boxes when the team returns to the Vault.
+Fixed a minor reflection warning when auto-closing ArrivalWindow (passing required boolean parameter).
+
+[Türkçe Açıklaması]:
+- AutoQuest'in (özellikle V.A.T.S. hızlandırması açıkken) sakinler giriş kapısından geçmeden (EntranceFlowCompleted tamamlanmadan) görevi bitirip kasaya dönüşte 'RETRY QUEST' + 0 Stimpak / 0 Caps / kayıp ödül hatasına düşmesine neden olan kritik hata düzeltildi.
+- AutoQuest başlangıç ve sonuç ekranı zamanlayıcıları gerçek zamana (Time.unscaledTime) geçirildi; dönüş öncesi EntranceFlowCompleted ve SetQuestSucceeded bayrakları garanti altına alındı.
+- Görev Kutu Ödülü Koruması eklendi: Görev bitimindeki Lunchbox, Pet Carrier ve Mr. Handy kutuları hafızaya alınıp kasaya dönüşte kayıp yaşanırsa otomatik geri yükleniyor.
+- ArrivalWindow kapatılırken oluşan parametre uyarısı (Close(true)) giderildi.
 ================================================================================

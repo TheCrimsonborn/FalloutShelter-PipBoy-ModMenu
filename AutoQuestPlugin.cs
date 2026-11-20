@@ -62,6 +62,9 @@ namespace FSAutoQuest
         private string _pendingCompletionQuestId;
         private int _completionAttempts;
         private float _nextCompletionTime;
+        private int _pendingQuestLunchboxes;
+        private int _pendingQuestPetCarriers;
+        private int _pendingQuestMrHandy;
 
         private bool _inputErrorLogged;
         private readonly HashSet<string> _methodMissLogged = new HashSet<string>();
@@ -388,6 +391,46 @@ namespace FSAutoQuest
         {
             TryRegisterCompletion();
 
+            if (_pendingQuestLunchboxes > 0 || _pendingQuestPetCarriers > 0 || _pendingQuestMrHandy > 0)
+            {
+                try
+                {
+                    var wasteland = Singleton("Wasteland");
+                    if (wasteland != null)
+                    {
+                        var teams = M(wasteland, "Teams") as IList;
+                        if (teams != null)
+                        {
+                            foreach (var t in teams)
+                            {
+                                if (t == null) continue;
+                                int status = Convert.ToInt32(M(t, "m_eStatus"));
+                                if ((status == 2 || status == 3) && Truthy(Call(t, "IsQuest")))
+                                {
+                                    var eq = M(t, "TeamEquipment");
+                                    var br = eq != null ? M(eq, "BasicResources") : null;
+                                    var res = br != null ? M(br, "Resources") : null;
+                                    if (res != null)
+                                    {
+                                        EnsureBoxReward(res, "Lunchbox", _pendingQuestLunchboxes);
+                                        EnsureBoxReward(res, "PetCarrier", _pendingQuestPetCarriers);
+                                        EnsureBoxReward(res, "MrHandy", _pendingQuestMrHandy);
+                                        _pendingQuestLunchboxes = 0;
+                                        _pendingQuestPetCarriers = 0;
+                                        _pendingQuestMrHandy = 0;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogV("Kutu odulu dogrulama hatasi: " + Inner(ex).Message);
+                }
+            }
+
             if (CfgInstantReturn != null && CfgInstantReturn.Value)
             {
                 try
@@ -504,6 +547,26 @@ namespace FSAutoQuest
             }
         }
 
+        private void EnsureBoxReward(object gameResources, string prop, int expected)
+        {
+            if (expected <= 0) return;
+            try
+            {
+                float cur = Convert.ToSingle(M(gameResources, prop));
+                if (cur < expected)
+                {
+                    if (SetMember(gameResources, prop, (float)expected))
+                    {
+                        Logger.LogInfo("Gorev kutu odulu kaybi onlendi (" + prop + "): " + cur.ToString("0") + " -> " + expected);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                LogV("Kutu odulu geri yuklenemedi (" + prop + "): " + e.Message);
+            }
+        }
+
         private void SetResourceIfLow(object gameResources, string prop, int wanted)
         {
             try
@@ -533,7 +596,7 @@ namespace FSAutoQuest
             if (qid != _questId)
             {
                 _questId = qid;
-                _questSeenAt = Time.time;
+                _questSeenAt = Time.unscaledTime;
                 _resultShown = false;
                 _exitRequested = false;
                 _roomClearedAt.Clear();
@@ -541,9 +604,18 @@ namespace FSAutoQuest
                 Logger.LogInfo("Gorev algilandi: " + qid);
             }
 
-            // gorev sahnesi tam yuklenene kadar bekle
-            if (Time.time - _questSeenAt < 1.5f) return;
+            // gorev sahnesi tam yuklenene ve giris akisi tamamlanana kadar bekle (VATS hizindan etkilenmesin diye unscaledTime)
+            float elapsedReal = Time.unscaledTime - _questSeenAt;
+            if (elapsedReal < 1.5f) return;
             if (IsQuickLoading()) return;
+
+            bool entranceDone = Truthy(M(qdm, "EntranceFlowCompleted"));
+            if (!entranceDone)
+            {
+                if (elapsedReal < 6.0f) return;
+                // Giris animasyonu 6 saniyede bitmezse guvenli sekilde tamamlandi isaretle
+                try { SetMember(qdm, "EntranceFlowCompleted", true); } catch { }
+            }
 
             bool succeeded = Truthy(M(qdm, "IsQuestSucceeded"));
 
@@ -879,7 +951,7 @@ namespace FSAutoQuest
                         try
                         {
                             Call(arrWin, "OnClaimPressed");
-                            Call(arrWin, "Close");
+                            Call(arrWin, "Close", true);
                         }
                         catch { }
                     }
@@ -1116,12 +1188,51 @@ namespace FSAutoQuest
             if (!_resultShown)
             {
                 _resultShown = true;
-                _resultShownAt = Time.time;
+                _resultShownAt = Time.unscaledTime;
+
+                // Kasaya donerken RETRY QUEST / 0 odul hatasi olmamasi icin giris ve basari bayraklarini garantiye al
+                try
+                {
+                    if (qdm != null)
+                    {
+                        if (!Truthy(M(qdm, "EntranceFlowCompleted")))
+                            SetMember(qdm, "EntranceFlowCompleted", true);
+                        if (!Truthy(M(qdm, "IsQuestSucceeded")))
+                            Call(qdm, "SetQuestSucceeded");
+                    }
+                }
+                catch { }
 
                 // gorev kaydini kasaya donunce isle (tek sefer)
                 _pendingCompletionQuestId = _questId;
                 _completionAttempts = 0;
                 _nextCompletionTime = 0f;
+
+                // Gorevde kazanilan Lunchbox / PetCarrier / MrHandy kutularini guvenceye al
+                _pendingQuestLunchboxes = 0;
+                _pendingQuestPetCarriers = 0;
+                _pendingQuestMrHandy = 0;
+                try
+                {
+                    var qTeam = qdm != null ? M(qdm, "CurrentWastelandTeam") : null;
+                    var qInv = qTeam != null ? M(qTeam, "LootInventory") : null;
+                    if (qInv != null)
+                    {
+                        var tLb = EnumVal("EQuestLootType", "Lunchbox", 12);
+                        var tPc = EnumVal("EQuestLootType", "PetCarrier", 13);
+                        var tMh = EnumVal("EQuestLootType", "MrHandyBox", 14);
+                        if (tLb != null) _pendingQuestLunchboxes = Convert.ToInt32(Call(qInv, "GetLootCount", tLb));
+                        if (tPc != null) _pendingQuestPetCarriers = Convert.ToInt32(Call(qInv, "GetLootCount", tPc));
+                        if (tMh != null) _pendingQuestMrHandy = Convert.ToInt32(Call(qInv, "GetLootCount", tMh));
+                        if (_pendingQuestLunchboxes > 0 || _pendingQuestPetCarriers > 0 || _pendingQuestMrHandy > 0)
+                        {
+                            Logger.LogInfo("Gorev kutu odulleri kaydedildi: Lunchbox=" + _pendingQuestLunchboxes +
+                                           ", PetCarrier=" + _pendingQuestPetCarriers +
+                                           ", MrHandy=" + _pendingQuestMrHandy);
+                        }
+                    }
+                }
+                catch { }
 
                 bool showing = false;
                 try { showing = Truthy(M(rw, "m_isShowing")); } catch { }
@@ -1148,7 +1259,7 @@ namespace FSAutoQuest
 
             if (!CfgAutoReturn.Value) return;
 
-            if (!_exitRequested && Time.time - _resultShownAt > 1.2f)
+            if (!_exitRequested && Time.unscaledTime - _resultShownAt > 1.2f)
             {
                 _exitRequested = true;
                 _exitRequestedAt = Time.time;
