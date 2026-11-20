@@ -270,11 +270,13 @@ Fixed a minor reflection warning when auto-closing ArrivalWindow (passing requir
 VERSION: 1.4.4
 --------------------------------------------------------------------------------
 [Nexus Kopyala-Yapıştır / English]:
-Added 'Free Packs (Shop)' toggle (/ucretsizpack) under the new Shop category.
-When enabled, pressing 'Buy' on any Shop pack (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka-Cola Quantum) skips the real-money/Steam payment flow and grants the pack contents instantly.
-The purchase is processed through the game's own reward pipeline, so boxes are added to the Collection screen and the save file is updated exactly like a normal purchase.
-Battle Pass upgrades and character bundles are intentionally excluded and keep using the normal purchase flow.
-The cheat is fully toggleable from the in-game mod menu (F4) and the setting persists across restarts.
+Added a new Shop category to the in-game Pip-Boy mod menu (F4) with a 'Free Packs' toggle (/ucretsizpack), enabled by default.
+When enabled, pressing 'Buy' on any supported Shop pack skips the real-money / Steam payment flow entirely and grants the pack contents instantly.
+Supported packs: Lunchbox, Mr. Handy, Pet Carrier, Starter Pack and Nuka-Cola Quantum 1 / 2.
+Purchases are routed through the game's own reward pipeline, so boxes are added to the Collection screen and the save file is updated exactly like a normal purchase.
+Battle Pass upgrades and character bundles (Victor / Curie) are intentionally excluded and keep using the normal purchase flow.
+The toggle can be switched on or off from the in-game menu and its state persists across restarts.
+Shows up in the config file as [Magaza] UcretsizPackler in BepInEx/config/com.halil.fsautoquest.cfg.
 
 [Türkçe Açıklaması]:
 - Yeni 'Mağaza' sekmesine 'Pack'ler Ücretsiz' (/ucretsizpack) özelliği eklendi.
