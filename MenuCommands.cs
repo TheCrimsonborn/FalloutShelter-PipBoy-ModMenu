@@ -519,7 +519,7 @@ namespace FSAutoQuest.Menu
             get { return MenuPlugin.IsTurkish ? "Mod menusu dilini Turkce ve Ingilizce arasinda degistirir." : "Switches mod menu language between Turkish and English."; }
         }
 
-        public override string Format { get { return "/dil"; } }
+        public override string Format { get { return "/lang"; } }
         public override string Category { get { return MenuPlugin.IsTurkish ? "Ayarlar" : "Settings"; } }
         public override bool IsToggle { get { return false; } }
         public override bool HasConfig { get { return false; } }
@@ -541,7 +541,7 @@ namespace FSAutoQuest.Menu
         {
             get { return MenuPlugin.IsTurkish ? "Gorevleri arka planda otomatik tamamlar, esya toplar ve vaulta doner." : "Automatically completes quests in background."; }
         }
-        public override string Format { get { return "/otomatikgorev"; } }
+        public override string Format { get { return "/autoquest"; } }
         public override string Category { get { return MenuPlugin.IsTurkish ? "Otomatik Gorev" : "FSAutoQuest"; } }
 
         public override bool IsToggle { get { return true; } }
@@ -574,7 +574,7 @@ namespace FSAutoQuest.Menu
                     : "Automatically returns to vault when quest is done. If off, waits for you to click 'Return to Vault'.";
             }
         }
-        public override string Format { get { return "/otomatikkasayadon"; } }
+        public override string Format { get { return "/autoreturn"; } }
         public override string Category { get { return MenuPlugin.IsTurkish ? "Otomatik Gorev" : "FSAutoQuest"; } }
 
         public override bool IsToggle { get { return true; } }
@@ -607,7 +607,7 @@ namespace FSAutoQuest.Menu
                     : "Instantly brings your quest team to the vault door without waiting for wasteland travel time.";
             }
         }
-        public override string Format { get { return "/anindakapiyaulas"; } }
+        public override string Format { get { return "/instantreturn"; } }
         public override string Category { get { return MenuPlugin.IsTurkish ? "Otomatik Gorev" : "FSAutoQuest"; } }
 
         public override bool IsToggle { get { return true; } }
@@ -748,7 +748,7 @@ namespace FSAutoQuest.Menu
                     : "When you press 'Buy' in the Shop, no payment is processed; the pack contents are granted instantly (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka).";
             }
         }
-        public override string Format { get { return "/ucretsizpack"; } }
+        public override string Format { get { return "/freepacks"; } }
         public override string Category { get { return MenuPlugin.IsTurkish ? "Magaza" : "Shop"; } }
 
         public override bool IsToggle { get { return true; } }
@@ -776,7 +776,7 @@ namespace FSAutoQuest.Menu
         {
             get { return MenuPlugin.IsTurkish ? "Tum sakinleri donma veya hata olmadan 50. seviyeye cikarir." : "Safely sets all dwellers to max level without lag."; }
         }
-        public override string Format { get { return "/maxseviye"; } }
+        public override string Format { get { return "/maxlevel"; } }
         public override string Category { get { return MenuPlugin.IsTurkish ? "Sakinler" : "Dwellers"; } }
 
         public override bool IsToggle { get { return false; } }

@@ -284,4 +284,16 @@ Shows up in the config file as [Magaza] UcretsizPackler in BepInEx/config/com.ha
 - Satın alma, oyunun kendi ödül dağıtım hattı üzerinden işlendiği için kutular Collection ekranına eklenir ve kayıt dosyası normal bir satın almadaki gibi güncellenir.
 - Battle Pass yükseltmeleri ve karakter paketleri bilinçli olarak kapsam dışı bırakıldı; onlar normal satın alma akışını kullanmaya devam eder.
 - Hile, oyun içi mod menüsünden (F4) açılıp kapatılabilir ve ayar yeniden başlatmalarda korunur.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.4.5
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Standardized all remaining Turkish slash commands to English for full international consistency across console and keybind commands.
+Renamed /dil -> /lang, /otomatikgorev -> /autoquest, /otomatikkasayadon -> /autoreturn, /anindakapiyaulas -> /instantreturn, /ucretsizpack -> /freepacks, and /maxseviye -> /maxlevel.
+
+[Türkçe Açıklaması]:
+- Kalan tüm Türkçe `/` komutları uluslararası tutarlılık için İngilizceye dönüştürüldü.
+- /dil -> /lang, /otomatikgorev -> /autoquest, /otomatikkasayadon -> /autoreturn, /anindakapiyaulas -> /instantreturn, /ucretsizpack -> /freepacks, /maxseviye -> /maxlevel olarak güncellendi.
 ================================================================================
