@@ -860,35 +860,9 @@ namespace FSAutoQuest
                     }
                 }
 
-                // 3. Lunchbox Collected Window (Odule bagli Lunchbox Kutulari)
-                object lbWin = vgm != null ? M(vgm, "m_LunchBoxCollectedWindow") : null;
-                if (lbWin == null)
-                {
-                    var lbType = FindType("LunchBoxCollectedWindow");
-                    if (lbType != null) lbWin = UnityEngine.Object.FindObjectOfType(lbType);
-                }
-
-                if (lbWin != null)
-                {
-                    bool isLbActive = false;
-                    var lbWinObj = M(lbWin, "m_myWindow");
-                    if (lbWinObj != null)
-                    {
-                        try { isLbActive = Truthy(Call(lbWinObj, "IsActive")); } catch { }
-                    }
-                    if (!isLbActive)
-                    {
-                        var comp = lbWin as UnityEngine.Component;
-                        if (comp != null && comp.gameObject.activeInHierarchy) isLbActive = true;
-                    }
-
-                    if (isLbActive)
-                    {
-                        try { Call(lbWin, "CloseWithButton"); } catch { }
-                    }
-                }
-
-                // 4. Arrival Window (Gorevden / Kesiften donen ekibin karsilama ekrani)
+                // 3. Arrival Window (Gorevden / Kesiften donen ekibin karsilama ekrani)
+                // Not: LunchBoxCollectedWindow (Collection / Shop / Redeem ekrani) kesinlikle otomatik kapatilmaz,
+                // aksi halde oyuncu lunchbox/paket acma ekranini kullanamaz.
                 object arrWin = vgm != null ? M(vgm, "m_arrivalWindow") : null;
                 if (arrWin == null)
                 {

@@ -236,4 +236,16 @@ Disabled BepInEx debug console popup by default in FullPack and unblocked all bu
 - Gizemli Yabancı otomatik yakalama güvenilirliği artırıldı (belirme gecikmesi baypas edildi ve doğrudan ödül tetikleme eklendi).
 - Event Manager toggle ayarlarının kalıcı olarak kaydedilmesi sağlandı.
 - FullPack varsayılan BepInEx konsol penceresi kapatıldı ve paketlenen tüm DLL dosyalarının Windows engel işareti temizlendi.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.4.2
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Fixed a critical bug where 'Auto-Collect Rewards' (/autocollect) automatically closed the Collection / Shop / Redeem screen (LunchBoxCollectedWindow), preventing players from opening Lunchboxes, Pet Carriers, Mr. Handy boxes, and Starter Packs.
+Auto-Collect Rewards now strictly targets only Recipe Fragment popups (ThemeRecipeLootWindow), Blueprint popups (RecipeLootWindow), and wasteland/quest arrival dialogs (ArrivalWindow).
+
+[Türkçe Açıklaması]:
+- 'Tarif / Ödül Otomatik Topla' (/autocollect) özelliği açıkken Collection / Shop / Redeem (LunchBoxCollectedWindow) ekranının açıldığı anda otomatik kapanmasına ve Lunchbox/Pet Carrier/Mr. Handy paketlerinin açılamamasına neden olan kritik hata düzeltildi.
+- Otomatik Ödül Toplama artık yalnızca Tarif Parçası (ThemeRecipeLootWindow), Şema (RecipeLootWindow) ve görev dönüş karşılama (ArrivalWindow) pencerelerini hedefliyor.
 ================================================================================
