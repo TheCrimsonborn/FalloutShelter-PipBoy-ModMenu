@@ -1,4 +1,5 @@
 using FSAutoQuest.Vats;
+using FSAutoQuest.Events;
 
 using System;
 using System.Collections.Generic;
@@ -972,72 +973,85 @@ namespace FSAutoQuest.Menu
 
             try
             {
-                if (cmd is AutoQuestToggleCommand)
+                CustomCommand c = (target != null) ? target : cmd;
+                if (c is AutoQuestToggleCommand)
                 {
-                    AutoQuestPlugin.SetEnabled(cmd.IsEnabled);
+                    AutoQuestPlugin.SetEnabled(c.IsEnabled);
                     if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
                         AutoQuestPlugin.Instance.Config.Save();
                 }
-                else if (cmd is AutoReturnToggleCommand)
+                else if (c is AutoReturnToggleCommand)
                 {
-                    AutoQuestPlugin.SetAutoReturnEnabled(cmd.IsEnabled);
+                    AutoQuestPlugin.SetAutoReturnEnabled(c.IsEnabled);
                     if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
                         AutoQuestPlugin.Instance.Config.Save();
                 }
-                else if (cmd is InstantReturnToggleCommand)
+                else if (c is InstantReturnToggleCommand)
                 {
-                    AutoQuestPlugin.SetInstantReturnEnabled(cmd.IsEnabled);
+                    AutoQuestPlugin.SetInstantReturnEnabled(c.IsEnabled);
                     if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
                         AutoQuestPlugin.Instance.Config.Save();
                 }
-                else if (cmd is AutoCollectRewardsToggleCommand)
+                else if (c is AutoCollectRewardsToggleCommand)
                 {
-                    AutoQuestPlugin.SetAutoCollectRewardsEnabled(cmd.IsEnabled);
+                    AutoQuestPlugin.SetAutoCollectRewardsEnabled(c.IsEnabled);
                     if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
                         AutoQuestPlugin.Instance.Config.Save();
                 }
-                else if (cmd is AutoKillEnemiesToggleCommand)
+                else if (c is AutoKillEnemiesToggleCommand)
                 {
-                    AutoQuestPlugin.SetAutoKillEnemiesEnabled(cmd.IsEnabled);
+                    AutoQuestPlugin.SetAutoKillEnemiesEnabled(c.IsEnabled);
                     if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
                         AutoQuestPlugin.Instance.Config.Save();
                 }
-                else if (cmd is BypassQuestRequirementsCommand)
+                else if (c is BypassQuestRequirementsCommand)
                 {
                     if (AutoQuestPlugin.CfgBypassQuestReqs != null)
                     {
-                        AutoQuestPlugin.CfgBypassQuestReqs.Value = cmd.IsEnabled;
+                        AutoQuestPlugin.CfgBypassQuestReqs.Value = c.IsEnabled;
                         if (AutoQuestPlugin.Instance != null && AutoQuestPlugin.Instance.Config != null)
                             AutoQuestPlugin.Instance.Config.Save();
                     }
                 }
-                else if (cmd is VatsToggleBoostCommand)
+                else if (c is VatsToggleBoostCommand)
                 {
-                    VatsController.IsBoostEnabled = cmd.IsEnabled;
+                    VatsController.IsBoostEnabled = c.IsEnabled;
                     if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
                         MenuPlugin.Instance.Config.Save();
                 }
-                else if (cmd is VatsToggleWarpCommand)
+                else if (c is VatsToggleWarpCommand)
                 {
-                    VatsController.IsTimeWarpEnabled = cmd.IsEnabled;
+                    VatsController.IsTimeWarpEnabled = c.IsEnabled;
                     if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
                         MenuPlugin.Instance.Config.Save();
                 }
-                else if (cmd is VatsAutoPauseIncidentsCommand)
+                else if (c is VatsAutoPauseIncidentsCommand)
                 {
-                    VatsController.AutoPauseIncidents = cmd.IsEnabled;
+                    VatsController.AutoPauseIncidents = c.IsEnabled;
                     if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
                         MenuPlugin.Instance.Config.Save();
                 }
-                else if (cmd is VatsAutoPauseStrangerCommand)
+                else if (c is VatsAutoPauseStrangerCommand)
                 {
-                    VatsController.AutoPauseStranger = cmd.IsEnabled;
+                    VatsController.AutoPauseStranger = c.IsEnabled;
                     if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
                         MenuPlugin.Instance.Config.Save();
                 }
-                else if (cmd is VatsToggleOverlayCommand)
+                else if (c is VatsToggleOverlayCommand)
                 {
-                    VatsController.ShowOverlay = cmd.IsEnabled;
+                    VatsController.ShowOverlay = c.IsEnabled;
+                    if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
+                        MenuPlugin.Instance.Config.Save();
+                }
+                else if (c is EventAutoDefendToggleCommand)
+                {
+                    EventManagerController.AutoDefendEnabled = c.IsEnabled;
+                    if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
+                        MenuPlugin.Instance.Config.Save();
+                }
+                else if (c is EventAutoTapVisitorsToggleCommand)
+                {
+                    EventManagerController.AutoTapVisitorsEnabled = c.IsEnabled;
                     if (MenuPlugin.Instance != null && MenuPlugin.Instance.Config != null)
                         MenuPlugin.Instance.Config.Save();
                 }

@@ -1140,8 +1140,6 @@ namespace FSAutoQuest.Menu
         }
         public override void Execute(CommandInput message)
         {
-            IsEnabled = !IsEnabled;
-            SaveConfig();
         }
     }
 
@@ -1163,8 +1161,6 @@ namespace FSAutoQuest.Menu
         }
         public override void Execute(CommandInput message)
         {
-            IsEnabled = !IsEnabled;
-            SaveConfig();
         }
     }
 

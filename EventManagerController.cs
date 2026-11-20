@@ -66,8 +66,7 @@ namespace FSAutoQuest.Events
                     if (vault != null && vault.EmergencyState != null)
                     {
                         var state = vault.EmergencyState;
-                        bool hasRoomEmergency = state.EmergencyRooms != null && state.EmergencyRooms.Count > 0;
-                        if (state.InEmergency || state.EmergencyTriggered || hasRoomEmergency)
+                        if (HasActiveIncident(state))
                         {
                             StopAllIncidents();
                         }
@@ -87,11 +86,17 @@ namespace FSAutoQuest.Events
                     if (sm != null && sm.CurrentMysteriousStranger != null)
                     {
                         var stranger = sm.CurrentMysteriousStranger;
-                        if (!stranger.AlreadyTapped && stranger.CanClick)
+                        if (!stranger.AlreadyTapped)
                         {
                             try
                             {
+                                stranger.CanClick = true;
                                 stranger.OnHandleTapDragable();
+                                if (!stranger.AlreadyTapped)
+                                {
+                                    sm.NotifyMysteriousStrangerTapped();
+                                    stranger.AlreadyTapped = true;
+                                }
                             }
                             catch { }
                         }
@@ -113,6 +118,50 @@ namespace FSAutoQuest.Events
                     }
                 }
             }
+        }
+
+        public static bool HasActiveIncident(VaultEmergencyState state)
+        {
+            if (state == null) return false;
+            if (state.InEmergency || state.InInvasion || state.IsInvaderEmergency || state.EmergencyTriggered)
+                return true;
+            if (state.EmergencyRooms != null && state.EmergencyRooms.Count > 0)
+                return true;
+
+            try
+            {
+                object[] mgrs = new object[]
+                {
+                    state.RaiderMgr,
+                    state.DeathclawMgr,
+                    state.AlienMgr,
+                    state.GhoulMgr,
+                    state.ProtectronMgr,
+                    state.ScorchedMgr,
+                    state.SecuritronMgr,
+                    state.EnclaveSecurityMgr,
+                    state.EnclavePowerArmorMgr,
+                    state.Gen1SynthMgr,
+                    state.Gen2SynthMgr
+                };
+
+                foreach (var mgr in mgrs)
+                {
+                    if (mgr != null)
+                    {
+                        var pHasInvaders = mgr.GetType().GetProperty("HasInvaders", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        if (pHasInvaders != null && (bool)pHasInvaders.GetValue(mgr, null))
+                            return true;
+
+                        var mIsAlive = mgr.GetType().GetMethod("IsAlive", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        if (mIsAlive != null && (bool)mIsAlive.Invoke(mgr, null))
+                            return true;
+                    }
+                }
+            }
+            catch { }
+
+            return false;
         }
 
         public static void TriggerEmergency(ERoomEmergencyMode mode)
@@ -216,7 +265,14 @@ namespace FSAutoQuest.Events
                 }
             }
 
-            // 2. Kapıdan giren tüm istilacı yöneticilerini durdur & temizle
+            // 2. VaultEmergencyState dahili invader temizliği
+            try
+            {
+                state.FixEmergency();
+            }
+            catch { }
+
+            // 3. Kapıdan giren tüm istilacı yöneticilerini durdur & temizle
             try
             {
                 object[] mgrs = new object[]
@@ -241,10 +297,10 @@ namespace FSAutoQuest.Events
                         try
                         {
                             var mForceStop = mgr.GetType().GetMethod("ForceStop", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                            if (mForceStop != null)
-                            {
-                                mForceStop.Invoke(mgr, null);
-                            }
+                            if (mForceStop != null) mForceStop.Invoke(mgr, null);
+
+                            var mCleanMgr = mgr.GetType().GetMethod("CleanMgr", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                            if (mCleanMgr != null) mCleanMgr.Invoke(mgr, null);
                         }
                         catch { }
                     }
@@ -252,7 +308,7 @@ namespace FSAutoQuest.Events
             }
             catch { }
 
-            // 3. VaultEmergencyState temizliği
+            // 4. VaultEmergencyState temizliği
             try
             {
                 state.StopEmergency();

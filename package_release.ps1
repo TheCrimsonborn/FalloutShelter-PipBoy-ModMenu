@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Version = "1.0.0"
 )
 
@@ -30,11 +30,17 @@ Write-Host ">>> 2. Dosyalar hazirlaniyor..." -ForegroundColor Cyan
 # BepInEx Core
 Copy-Item (Join-Path $gameDir "BepInEx\core\*") (Join-Path $tempFull "BepInEx\core") -Recurse -Force
 
-# Injector & Config
+# Injector & Clean Config
 Copy-Item (Join-Path $gameDir "winhttp.dll") (Join-Path $tempFull "winhttp.dll") -Force
 Copy-Item (Join-Path $gameDir "doorstop_config.ini") (Join-Path $tempFull "doorstop_config.ini") -Force
-if (Test-Path (Join-Path $gameDir "BepInEx\config")) {
-    Copy-Item (Join-Path $gameDir "BepInEx\config") (Join-Path $tempFull "BepInEx") -Recurse -Force
+New-Item -ItemType Directory -Path (Join-Path $tempFull "BepInEx\config") -Force | Out-Null
+# Sadece temiz BepInEx.cfg kopyala (kisisel mod configleri/hile kayitlari ASLA pakete girmesin!)
+$bepCfgSrc = Join-Path $gameDir "BepInEx\config\BepInEx.cfg"
+if (Test-Path $bepCfgSrc) {
+    $bepCfgContent = Get-Content -LiteralPath $bepCfgSrc -Raw
+    # Son kullanici icin debug konsol penceresini kapali tut
+    $bepCfgContent = $bepCfgContent -replace "(?ms)(\[Logging\.Console\].*?^Enabled\s*=\s*)true", '${1}false'
+    Set-Content -LiteralPath (Join-Path $tempFull "BepInEx\config\BepInEx.cfg") -Value $bepCfgContent -Encoding UTF8 -NoNewline
 }
 if (Test-Path (Join-Path $gameDir ".doorstop_version")) {
     Copy-Item (Join-Path $gameDir ".doorstop_version") (Join-Path $tempFull ".doorstop_version") -Force
@@ -48,8 +54,12 @@ foreach ($dll in $pluginDlls) {
     $srcVats = Join-Path $scriptDir "..\Vault Accelerated Time System\$dll"
     $src = if (Test-Path $srcLocal) { $srcLocal } elseif (Test-Path $srcVats) { $srcVats } else { $srcGame }
     if (Test-Path $src) {
-        Copy-Item $src (Join-Path $tempFull "BepInEx\plugins\$dll") -Force
-        Copy-Item $src (Join-Path $tempPlugins "BepInEx\plugins\$dll") -Force
+        $dstFull = Join-Path $tempFull "BepInEx\plugins\$dll"
+        $dstPlug = Join-Path $tempPlugins "BepInEx\plugins\$dll"
+        Copy-Item $src $dstFull -Force
+        Copy-Item $src $dstPlug -Force
+        try { Unblock-File -LiteralPath $dstFull -ErrorAction SilentlyContinue } catch {}
+        try { Unblock-File -LiteralPath $dstPlug -ErrorAction SilentlyContinue } catch {}
     }
 }
 

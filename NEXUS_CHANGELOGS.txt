@@ -216,4 +216,24 @@ Full bilingual support (TR/EN) across all Event Manager commands, dialogs, and t
 - Otomatik Olay Savuşturma (/eventautodefend): Kasada herhangi bir felaket veya baskın çıktığı anda otomatik yok eder (kalıcı ayar).
 - Ziyaretçileri Otomatik Yakala (/eventautotap): Gizemli Yabancı veya Bottle & Cappy belirdiğinde otomatik tıklayıp kapakları ve ödülleri toplar (kalıcı ayar).
 - Tüm yeni komutlar için %100 Türkçe ve İngilizce çift dil desteği sağlandı.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.4.1
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Fixed FullPack packaging issue where pre-configured mod config files (with pre-enabled cheats) were accidentally bundled, preventing crashes when creating a new vault.
+Fixed double-toggle bug on 'Auto-Defend Incidents' (/eventautodefend) and 'Auto-Tap Mysterious Stranger' (/eventautotap) buttons where clicking them immediately reverted to [OFF].
+Enhanced Auto-Defend Incidents to detect and eliminate external vault door invasions (Raiders, Deathclaws, Aliens, Ghouls, Synths, Enclave) immediately upon arrival before room breach.
+Improved Auto-Tap Mysterious Stranger reliability by bypassing fade-in click delay and adding direct tap fallback.
+Fixed config state persistence for localized Event Manager toggle commands.
+Disabled BepInEx debug console popup by default in FullPack and unblocked all bundled plugin DLLs.
+
+[Türkçe Açıklaması]:
+- FullPack paketine yanlışlıkla dahil edilen ve önceden açık hileler barındıran kişisel config dosyaları kaldırıldı (yeni kasa oluştururken yaşanan çökme sorunu giderildi).
+- 'Otomatik Olay Savuşturma' (/eventautodefend) ve 'Ziyaretçileri Otomatik Yakala' (/eventautotap) butonlarının tıklandığında anında [KAPALI] durumuna geri dönmesine neden olan çift tetikleme (double-toggle) hatası düzeltildi.
+- Otomatik Olay Savuşturma geliştirildi: artık kapıya dayanan tüm dış baskınlar (Raiders, Deathclaws, Aliens, Ghouls, Synths, Enclave) odaya girmeden anında tespit edilip temizleniyor.
+- Gizemli Yabancı otomatik yakalama güvenilirliği artırıldı (belirme gecikmesi baypas edildi ve doğrudan ödül tetikleme eklendi).
+- Event Manager toggle ayarlarının kalıcı olarak kaydedilmesi sağlandı.
+- FullPack varsayılan BepInEx konsol penceresi kapatıldı ve paketlenen tüm DLL dosyalarının Windows engel işareti temizlendi.
 ================================================================================
