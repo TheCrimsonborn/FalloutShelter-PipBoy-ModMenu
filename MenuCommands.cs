@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace FSAutoQuest.Menu
 {
-    [BepInPlugin("com.halil.fsautoquest.menu", "FSAutoQuest - Turkce Mod Menu & Dugmeler", "0.4.0")]
+    [BepInPlugin("com.halil.fsautoquest.menu", "FSAutoQuest - Turkce Mod Menu & Dugmeler", "0.5.0")]
     [BepInDependency("com.halil.fsautoquest")]
     [BepInDependency("Toemmsen96.CTDynamicModMenu", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("toemmsen.FSCheats", BepInDependency.DependencyFlags.SoftDependency)]
@@ -23,6 +23,7 @@ namespace FSAutoQuest.Menu
         private BypassQuestRequirementsCommand _bypassQuestReqs;
         private AutoKillEnemiesToggleCommand _autoKill;
         private AutoCollectRewardsToggleCommand _autoCollect;
+        private FreeShopToggleCommand _freeShop;
         private VatsToggleBoostCommand _vatsBoost;
         private VatsToggleWarpCommand _vatsWarp;
         private VatsSetMultiplierCommand _vatsMult;
@@ -114,6 +115,7 @@ namespace FSAutoQuest.Menu
             _bypassQuestReqs = new BypassQuestRequirementsCommand();
             _autoKill = new AutoKillEnemiesToggleCommand();
             _autoCollect = new AutoCollectRewardsToggleCommand();
+            _freeShop = new FreeShopToggleCommand();
             try
             {
                 VatsController.Initialize(Config);
@@ -190,8 +192,9 @@ namespace FSAutoQuest.Menu
                     menu.RegisterCommand(_maxLevel);
                     menu.RegisterCommand(_langToggle);
                     menu.RegisterCommand(_bypassQuestReqs);
-                    menu.RegisterCommand(_autoKill);
-                    menu.RegisterCommand(_autoCollect);
+                    if (_autoKill != null) menu.RegisterCommand(_autoKill);
+                    if (_autoCollect != null) menu.RegisterCommand(_autoCollect);
+                    if (_freeShop != null) menu.RegisterCommand(_freeShop);
                     if (_vatsBoost != null) menu.RegisterCommand(_vatsBoost);
                     if (_vatsWarp != null) menu.RegisterCommand(_vatsWarp);
                     if (_vatsMult != null) menu.RegisterCommand(_vatsMult);
@@ -729,6 +732,39 @@ namespace FSAutoQuest.Menu
         }
     }
 
+    /// <summary>Magazadaki pack'leri (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka) ucretsiz satin almayi acar/kapar.</summary>
+    internal class FreeShopToggleCommand : CustomCommand
+    {
+        public override string Name
+        {
+            get { return MenuPlugin.IsTurkish ? "Pack'ler Ucretsiz" : "Free Packs (Shop)"; }
+        }
+        public override string Description
+        {
+            get
+            {
+                return MenuPlugin.IsTurkish
+                    ? "Magazada 'Satin Al' butonuna bastiginizda odeme yapilmaz; pack icerigi dogrudan hesabiniza eklenir (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka)."
+                    : "When you press 'Buy' in the Shop, no payment is processed; the pack contents are granted instantly (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka).";
+            }
+        }
+        public override string Format { get { return "/ucretsizpack"; } }
+        public override string Category { get { return MenuPlugin.IsTurkish ? "Magaza" : "Shop"; } }
+
+        public override bool IsToggle { get { return true; } }
+        public override bool HasConfig { get { return false; } }
+
+        public override bool IsEnabled
+        {
+            get { return AutoQuestPlugin.IsFreeShopEnabled; }
+            set { AutoQuestPlugin.IsFreeShopEnabled = value; }
+        }
+
+        public override void Execute(CommandInput message)
+        {
+        }
+    }
+
     /// <summary>Sakinleri tek tek max seviyeye cikarir (takilma yapmadan).</summary>
     internal class MaxLevelDwellersCommand : CustomCommand
     {
@@ -1183,6 +1219,7 @@ namespace FSAutoQuest.Menu
             { "Settings", "Ayarlar" },
             { "Help", "Yardim" },
             { "FSAutoQuest", "Otomatik Gorev" },
+            { "Shop", "Magaza" },
             { "Themes", "Temalar" },
             { "V.A.T.S.", "V.A.T.S. (Zaman)" },
             { "Events", "Olay Yoneticisi" }

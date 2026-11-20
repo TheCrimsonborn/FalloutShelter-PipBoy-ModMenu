@@ -58,7 +58,8 @@ Invoke-Compile -Sources @(
     (Join-Path $PSScriptRoot "FalloutThemes.cs"),
     (Join-Path $PSScriptRoot "VatsController.cs"),
     (Join-Path $PSScriptRoot "EventManagerController.cs"),
-    (Join-Path $PSScriptRoot "QuestRequirementsPatch.cs")
+    (Join-Path $PSScriptRoot "QuestRequirementsPatch.cs"),
+    (Join-Path $PSScriptRoot "ShopPurchaseCheat.cs")
 ) -References $menuRefs -Output $menuDll
 
 # ---------------------------------------------------------------- 3) kurulum

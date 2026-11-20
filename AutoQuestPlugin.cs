@@ -40,6 +40,7 @@ namespace FSAutoQuest
         internal static ConfigEntry<bool> CfgVerbose;
         internal static ConfigEntry<bool> CfgAutoKillEnemies;
         internal static ConfigEntry<bool> CfgAutoCollectRewards;
+        public static ConfigEntry<bool> CfgFreeShop;
 
         internal static ManualLogSource Log;
 
@@ -169,6 +170,21 @@ namespace FSAutoQuest
                 Log.LogInfo("Tarif/Odul Otomatik Topla: " + (value ? "ACIK" : "KAPALI"));
         }
 
+        public static bool IsFreeShopEnabled
+        {
+            get { return CfgFreeShop != null && CfgFreeShop.Value; }
+            set { SetFreeShopEnabled(value); }
+        }
+
+        public static void SetFreeShopEnabled(bool value)
+        {
+            if (CfgFreeShop == null) return;
+            bool changed = CfgFreeShop.Value != value;
+            CfgFreeShop.Value = value;
+            if (changed && Log != null)
+                Log.LogInfo("Ucretsiz Magaza (Pack'ler): " + (value ? "ACIK" : "KAPALI"));
+        }
+
         /// <summary>Mod menuden "Sakinleri Max Seviye Yap" icin.</summary>
         public static void QueueMaxLevelDwellers()
         {
@@ -204,6 +220,8 @@ namespace FSAutoQuest
                 "Gorevdeki tum dusman NPC'leri otomatik oldur. (Dost ve diyalog NPC'lerine asla dokunmaz)");
             CfgAutoCollectRewards = Config.Bind("Genel", "OtomatikOdulTopla", true,
                 "Gorev ve kesif sonrasi cikan tarif parcasi (Recipe Fragment), esya ve odul pencerelerini otomatik toplayip kapatir.");
+            CfgFreeShop = Config.Bind("Magaza", "UcretsizPackler", true,
+                "Magazadaki pack'ler (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka) satin alinirken odeme yapilmaz; icerik dogrudan hesaba eklenir.");
             CfgAutoRevive = Config.Bind("Genel", "OtomatikCanlandir", true,
                 "Gorevde olen sakinleri otomatik canlandir.");
             CfgRefill = Config.Bind("Sarf", "SarfMalzemeTamamla", true,

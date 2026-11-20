@@ -264,4 +264,22 @@ Fixed a minor reflection warning when auto-closing ArrivalWindow (passing requir
 - AutoQuest başlangıç ve sonuç ekranı zamanlayıcıları gerçek zamana (Time.unscaledTime) geçirildi; dönüş öncesi EntranceFlowCompleted ve SetQuestSucceeded bayrakları garanti altına alındı.
 - Görev Kutu Ödülü Koruması eklendi: Görev bitimindeki Lunchbox, Pet Carrier ve Mr. Handy kutuları hafızaya alınıp kasaya dönüşte kayıp yaşanırsa otomatik geri yükleniyor.
 - ArrivalWindow kapatılırken oluşan parametre uyarısı (Close(true)) giderildi.
+
+
+--------------------------------------------------------------------------------
+VERSION: 1.4.4
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Added 'Free Packs (Shop)' toggle (/ucretsizpack) under the new Shop category.
+When enabled, pressing 'Buy' on any Shop pack (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka-Cola Quantum) skips the real-money/Steam payment flow and grants the pack contents instantly.
+The purchase is processed through the game's own reward pipeline, so boxes are added to the Collection screen and the save file is updated exactly like a normal purchase.
+Battle Pass upgrades and character bundles are intentionally excluded and keep using the normal purchase flow.
+The cheat is fully toggleable from the in-game mod menu (F4) and the setting persists across restarts.
+
+[Türkçe Açıklaması]:
+- Yeni 'Mağaza' sekmesine 'Pack'ler Ücretsiz' (/ucretsizpack) özelliği eklendi.
+- Açıkken magazadaki herhangi bir pack'te (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka-Cola Quantum) 'Satın Al' butonuna basıldığında gerçek para / Steam ödeme akışı atlanır ve pack içeriği anında hesaba eklenir.
+- Satın alma, oyunun kendi ödül dağıtım hattı üzerinden işlendiği için kutular Collection ekranına eklenir ve kayıt dosyası normal bir satın almadaki gibi güncellenir.
+- Battle Pass yükseltmeleri ve karakter paketleri bilinçli olarak kapsam dışı bırakıldı; onlar normal satın alma akışını kullanmaya devam eder.
+- Hile, oyun içi mod menüsünden (F4) açılıp kapatılabilir ve ayar yeniden başlatmalarda korunur.
 ================================================================================
