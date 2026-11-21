@@ -146,6 +146,18 @@ namespace FSAutoQuest.Menu
             return true;
         }
 
+        private static readonly AccessTools.FieldRef<global::QuestEntryRequirements, bool> _isAllRequirementsMeetRef =
+            CreateFieldRef<global::QuestEntryRequirements, bool>("m_isAllRequirementsMeet");
+
+        private static readonly AccessTools.FieldRef<global::QuestEquipmentWindow, List<global::Dweller>> _selectedDwellersRef =
+            CreateFieldRef<global::QuestEquipmentWindow, List<global::Dweller>>("m_selectedDwellers");
+
+        private static AccessTools.FieldRef<T, F> CreateFieldRef<T, F>(string fieldName)
+        {
+            try { return AccessTools.FieldRefAccess<T, F>(fieldName); }
+            catch { return null; }
+        }
+
         // 11. Ekranda gereksinim tiklerini (yesil CheckMarks) aktif et ve m_isAllRequirementsMeet = true yap
         [HarmonyPatch(typeof(global::QuestEntryRequirements), "ValidateRequirements")]
         [HarmonyPostfix]
@@ -155,13 +167,16 @@ namespace FSAutoQuest.Menu
             {
                 try
                 {
-                    Traverse.Create(__instance).Field("m_isAllRequirementsMeet").SetValue(true);
+                    if (_isAllRequirementsMeetRef != null)
+                    {
+                        _isAllRequirementsMeetRef(__instance) = true;
+                    }
                     if (__instance.CheckMarks != null)
                     {
                         for (int i = 0; i < __instance.CheckMarks.Length; i++)
                         {
                             var cm = __instance.CheckMarks[i];
-                            if (cm != null && cm.gameObject != null)
+                            if (cm != null && cm.gameObject != null && !cm.gameObject.activeSelf)
                             {
                                 cm.gameObject.SetActive(true);
                             }
@@ -181,7 +196,7 @@ namespace FSAutoQuest.Menu
             {
                 try
                 {
-                    var list = Traverse.Create(__instance).Field<List<global::Dweller>>("m_selectedDwellers").Value;
+                    var list = _selectedDwellersRef != null ? _selectedDwellersRef(__instance) : null;
                     if (list != null && list.Count > 0)
                     {
                         __result = true;

@@ -34,7 +34,12 @@ namespace FSAutoQuest.Vats
         private static MethodInfo _mApplyBoost = null;
         private static MethodInfo _mResetIfBoosting = null;
 
-        private static bool _vatsResolved = false;
+        private static bool _vatsTypeResolved = false;
+        private static Type _vatsType = null;
+        private static float _nextInstanceLookupTime = 0f;
+        private static int _instanceLookupAttempts = 0;
+        private const int MaxInstanceLookupAttempts = 10;
+        private const float InstanceLookupCooldown = 3f;
 
         public static void Initialize(ConfigFile config)
         {
@@ -49,42 +54,64 @@ namespace FSAutoQuest.Vats
 
         private static void EnsureVatsBinding()
         {
-            if (_vatsResolved && _vatsPluginInstance != null) return;
-            _vatsResolved = true;
+            if (_vatsPluginInstance != null) return;
+
+            if (!_vatsTypeResolved)
+            {
+                _vatsTypeResolved = true;
+                try
+                {
+                    foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        try
+                        {
+                            var t = asm.GetType("VATS.SpeedBoostPlugin");
+                            if (t != null) { _vatsType = t; break; }
+                        }
+                        catch { }
+                    }
+
+                    if (_vatsType != null)
+                    {
+                        var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+                        _fToggleActive = _vatsType.GetField("_toggleActive", flags);
+                        _fToggleWarp = _vatsType.GetField("_toggleWarp", flags);
+                        _fFullMult = _vatsType.GetField("_fullMult", flags);
+                        _fWarpMult = _vatsType.GetField("_warpMult", flags);
+                        _fAnimSpeed = _vatsType.GetField("_animSpeed", flags);
+                        _fAutoPauseIncidents = _vatsType.GetField("_autoPauseIncidents", flags);
+                        _fOverlayOpacity = _vatsType.GetField("_overlayOpacity", flags);
+                        _mApplyBoost = _vatsType.GetMethod("ApplyBoost", flags);
+                        _mResetIfBoosting = _vatsType.GetMethod("ResetIfBoosting", flags);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning("[VATS] Binding hatasi: " + ex.Message);
+                }
+            }
+
+            // VATS.dll yuklu degilse bir daha tarama yapma
+            if (_vatsType == null) return;
+
+            if (_instanceLookupAttempts >= MaxInstanceLookupAttempts) return;
+            float now = Time.unscaledTime;
+            if (_instanceLookupAttempts > 0 && now < _nextInstanceLookupTime) return;
+
+            _instanceLookupAttempts++;
+            _nextInstanceLookupTime = now + InstanceLookupCooldown;
 
             try
             {
-                Type vatsType = null;
-                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+                var comp = UnityEngine.Object.FindObjectOfType(_vatsType);
+                if (comp != null)
                 {
-                    try
-                    {
-                        var t = asm.GetType("VATS.SpeedBoostPlugin");
-                        if (t != null) { vatsType = t; break; }
-                    }
-                    catch { }
-                }
-
-                if (vatsType != null)
-                {
-                    var comp = UnityEngine.Object.FindObjectOfType(vatsType);
                     _vatsPluginInstance = comp;
-
-                    var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-                    _fToggleActive = vatsType.GetField("_toggleActive", flags);
-                    _fToggleWarp = vatsType.GetField("_toggleWarp", flags);
-                    _fFullMult = vatsType.GetField("_fullMult", flags);
-                    _fWarpMult = vatsType.GetField("_warpMult", flags);
-                    _fAnimSpeed = vatsType.GetField("_animSpeed", flags);
-                    _fAutoPauseIncidents = vatsType.GetField("_autoPauseIncidents", flags);
-                    _fOverlayOpacity = vatsType.GetField("_overlayOpacity", flags);
-                    _mApplyBoost = vatsType.GetMethod("ApplyBoost", flags);
-                    _mResetIfBoosting = vatsType.GetMethod("ResetIfBoosting", flags);
                 }
             }
             catch (Exception ex)
             {
-                Debug.LogWarning("[VATS] Binding hatasi: " + ex.Message);
+                Debug.LogWarning("[VATS] Instance arama hatasi: " + ex.Message);
             }
         }
 
@@ -382,9 +409,16 @@ namespace FSAutoQuest.Vats
             {
                 if (MonoSingleton<TimeMgr>.IsInstanceValid)
                 {
-                    MonoSingleton<TimeMgr>.Instance.m_timeScale = gameClockMult;
+                    var timeMgr = MonoSingleton<TimeMgr>.Instance;
+                    if (!Mathf.Approximately(timeMgr.m_timeScale, gameClockMult))
+                    {
+                        timeMgr.m_timeScale = gameClockMult;
+                    }
                 }
-                Time.timeScale = animMult;
+                if (!Mathf.Approximately(Time.timeScale, animMult))
+                {
+                    Time.timeScale = animMult;
+                }
             }
             catch { }
         }
@@ -395,7 +429,18 @@ namespace FSAutoQuest.Vats
             {
                 if (MonoSingleton<Vault>.IsInstanceValid)
                 {
-                    var rooms = MonoSingleton<Vault>.Instance.Rooms;
+                    var vault = MonoSingleton<Vault>.Instance;
+                    if (vault == null) return false;
+                    var state = vault.EmergencyState;
+                    if (state != null)
+                    {
+                        if (state.InEmergency || state.InInvasion || state.IsInvaderEmergency)
+                            return true;
+                        if (state.EmergencyRooms != null)
+                            return state.EmergencyRooms.Count > 0;
+                        return false;
+                    }
+                    var rooms = vault.Rooms;
                     if (rooms != null)
                     {
                         for (int i = 0; i < rooms.Count; i++)

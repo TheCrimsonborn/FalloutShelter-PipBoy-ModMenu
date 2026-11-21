@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace FSAutoQuest.Menu
 {
-    [BepInPlugin("com.halil.fsautoquest.menu", "FSAutoQuest - Turkce Mod Menu & Dugmeler", "0.5.0")]
+    [BepInPlugin("com.halil.fsautoquest.menu", "FSAutoQuest - Turkce Mod Menu & Dugmeler", "0.6.0")]
     [BepInDependency("com.halil.fsautoquest")]
     [BepInDependency("Toemmsen96.CTDynamicModMenu", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("toemmsen.FSCheats", BepInDependency.DependencyFlags.SoftDependency)]
@@ -54,10 +54,12 @@ namespace FSAutoQuest.Menu
         private bool _gaveUpLogged;
 
         internal static bool IsTurkish = true;
+        internal static int LanguageVersion = 0;
         internal static BepInEx.Configuration.ConfigEntry<bool> CfgLanguageIsTurkish;
         internal static MenuPlugin Instance;
         internal static BepInEx.Logging.ManualLogSource Log;
         private static FieldInfo _fPersist = null;
+        private static FieldInfo _fDecryptPassphrase = null;
         internal static void SetPersistentSettings(global::CTDynamicModMenu.CTDynamicModMenu menu, bool val)
         {
             if (menu == null) return;
@@ -90,6 +92,7 @@ namespace FSAutoQuest.Menu
                     var patchesType = Type.GetType("FSCheat.Patches, FSCheat");
                     if (patchesType != null)
                     {
+                        _fDecryptPassphrase = patchesType.GetField("decryptPassphrase", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                         var targetMethod = patchesType.GetMethod("CyDecryptPostfix", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                         var prefixMethod = typeof(MenuPlugin).GetMethod("CyDecryptPostfixPrefix", BindingFlags.Static | BindingFlags.NonPublic);
                         if (targetMethod != null && prefixMethod != null)
@@ -99,7 +102,10 @@ namespace FSAutoQuest.Menu
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning("FSCheat CyDecryptPostfix yamasi basarisiz: " + ex.Message);
+                }
                 Logger.LogInfo("Fallout Mod Menu temalari ve Harmony yamasi yuklendi.");
             }
             catch (Exception ex)
@@ -162,7 +168,6 @@ namespace FSAutoQuest.Menu
         {
             try { VatsController.TickUpdate(); } catch { }
             try { EventManagerController.TickUpdate(); } catch { }
-            if (global::CTDynamicModMenu.CTDynamicModMenu.Instance != null) { SetPersistentSettings(global::CTDynamicModMenu.CTDynamicModMenu.Instance, true); }
             if (_registered && _translated) return;
             if (Time.unscaledTime < _nextTry) return;
             _nextTry = Time.unscaledTime + 1f;
@@ -186,6 +191,7 @@ namespace FSAutoQuest.Menu
 
                 if (!_registered)
                 {
+                    SetPersistentSettings(menu, true);
                     menu.RegisterCommand(_toggle);
                     menu.RegisterCommand(_autoReturn);
                     menu.RegisterCommand(_instantReturn);
@@ -246,39 +252,61 @@ namespace FSAutoQuest.Menu
                 if (list == null || list.Count == 0) return;
 
                 if (menu != null) { SetPersistentSettings(menu, true); }
-                for (int i = 0; i < list.Count; i++)
+                bool hasConfig = menu != null && menu.Config != null;
+                bool prevSaveOnConfigSet = hasConfig ? menu.Config.SaveOnConfigSet : true;
+                bool configBound = false;
+                if (hasConfig)
                 {
-                    var cmd = list[i];
-                    CustomCommand realCmd = (cmd is LocalizedCommand loc) ? loc.Inner : cmd;
-
-                    // Yapilandirmayi geri yukle (Ingilizce orijinal anahtarla)
-                    if (realCmd != null && realCmd.IsToggle && menu != null && menu.Config != null)
+                    menu.Config.SaveOnConfigSet = false;
+                }
+                try
+                {
+                    for (int i = 0; i < list.Count; i++)
                     {
-                        try
+                        var cmd = list[i];
+                        CustomCommand realCmd = (cmd is LocalizedCommand loc) ? loc.Inner : cmd;
+
+                        // Yapilandirmayi geri yukle (Ingilizce orijinal anahtarla)
+                        if (realCmd != null && realCmd.IsToggle && hasConfig)
                         {
-                            string key = realCmd.Name + ": IsEnabled";
-                            var entry = menu.Config.Bind<bool>("Command Settings", key, realCmd.IsEnabled, "Whether the command is enabled");
-                            if (entry != null && entry.Value != realCmd.IsEnabled)
+                            try
                             {
-                                realCmd.IsEnabled = entry.Value;
-                            }
-                            if (cmd is LocalizedCommand locCmd)
-                            {
-                                locCmd.IsEnabled = realCmd.IsEnabled;
-                            }
+                                string key = realCmd.Name + ": IsEnabled";
+                                var entry = menu.Config.Bind<bool>("Command Settings", key, realCmd.IsEnabled, "Whether the command is enabled");
+                                configBound = true;
+                                if (entry != null && entry.Value != realCmd.IsEnabled)
+                                {
+                                    realCmd.IsEnabled = entry.Value;
+                                }
+                                if (cmd is LocalizedCommand locCmd)
+                                {
+                                    locCmd.IsEnabled = realCmd.IsEnabled;
+                                }
 
-                            // Eger hile kayitli olarak aciksa motor icinde calisir duruma getir
-                            if (realCmd.IsEnabled)
-                            {
-                                try { realCmd.Execute(new CommandInput()); } catch { }
+                                // Eger hile kayitli olarak aciksa motor icinde calisir duruma getir
+                                if (realCmd.IsEnabled)
+                                {
+                                    try { realCmd.Execute(new CommandInput()); } catch { }
+                                }
                             }
+                            catch { }
                         }
-                        catch { }
-                    }
 
-                    if (!(cmd is LocalizedCommand))
+                        if (!(cmd is LocalizedCommand))
+                        {
+                            list[i] = new LocalizedCommand(cmd);
+                        }
+                    }
+                }
+                finally
+                {
+                    if (hasConfig)
                     {
-                        list[i] = new LocalizedCommand(cmd);
+                        menu.Config.SaveOnConfigSet = prevSaveOnConfigSet;
+                        if (configBound)
+                        {
+                            try { menu.Config.Save(); } catch { }
+                        }
                     }
                 }
 
@@ -309,6 +337,7 @@ namespace FSAutoQuest.Menu
         internal static void ToggleLanguage()
         {
             IsTurkish = !IsTurkish;
+            LanguageVersion++;
             if (CfgLanguageIsTurkish != null)
             {
                 CfgLanguageIsTurkish.Value = IsTurkish;
@@ -340,18 +369,13 @@ namespace FSAutoQuest.Menu
             }
         }
 
-        private static bool CyDecryptPostfixPrefix(ref string passphrase)
+        private static bool CyDecryptPostfixPrefix(ref string passPhrase)
         {
             try
             {
-                var patchesType = Type.GetType("FSCheat.Patches, FSCheat");
-                if (patchesType != null)
+                if (_fDecryptPassphrase != null)
                 {
-                    var field = patchesType.GetField("decryptPassphrase", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (field != null)
-                    {
-                        field.SetValue(null, passphrase);
-                    }
+                    _fDecryptPassphrase.SetValue(null, passPhrase);
                 }
             }
             catch { }
@@ -366,6 +390,19 @@ namespace FSAutoQuest.Menu
     {
         private readonly CustomCommand _inner;
         private readonly bool _isFsCheatMaxLevel;
+
+        private int _nameLangVer = -1;
+        private string _cachedRawName;
+        private string _cachedName;
+
+        private int _catLangVer = -1;
+        private string _cachedRawCategory;
+        private string _cachedCategory;
+
+        private int _descLangVer = -1;
+        private string _cachedRawDescName;
+        private string _cachedRawDesc;
+        private string _cachedDesc;
 
         public CustomCommand Inner { get { return _inner; } }
 
@@ -387,13 +424,23 @@ namespace FSAutoQuest.Menu
         {
             get
             {
-                if (!MenuPlugin.IsTurkish)
+                int ver = MenuPlugin.LanguageVersion;
+                if (_isFsCheatMaxLevel)
                 {
-                    if (_isFsCheatMaxLevel) return "Max Level Dwellers (Safe)";
-                    return _inner.Name;
+                    if (_nameLangVer == ver && _cachedName != null) return _cachedName;
+                    _cachedName = MenuPlugin.IsTurkish
+                        ? "Sakinleri Max Seviye Yap (FSCheat - Guvenli)"
+                        : "Max Level Dwellers (Safe)";
+                    _nameLangVer = ver;
+                    return _cachedName;
                 }
-                if (_isFsCheatMaxLevel) return "Sakinleri Max Seviye Yap (FSCheat - Guvenli)";
-                return Localization.TranslateName(_inner.Name);
+                string raw = _inner.Name;
+                if (_nameLangVer == ver && object.ReferenceEquals(_cachedRawName, raw))
+                    return _cachedName;
+                _cachedRawName = raw;
+                _cachedName = MenuPlugin.IsTurkish ? Localization.TranslateName(raw) : raw;
+                _nameLangVer = ver;
+                return _cachedName;
             }
         }
 
@@ -401,8 +448,16 @@ namespace FSAutoQuest.Menu
         {
             get
             {
-                if (!MenuPlugin.IsTurkish) return Localization.GetEnglishCategory(_inner.Category);
-                return Localization.TranslateCategory(_inner.Category);
+                int ver = MenuPlugin.LanguageVersion;
+                string raw = _inner.Category;
+                if (_catLangVer == ver && object.ReferenceEquals(_cachedRawCategory, raw))
+                    return _cachedCategory;
+                _cachedRawCategory = raw;
+                _cachedCategory = MenuPlugin.IsTurkish
+                    ? Localization.TranslateCategory(raw)
+                    : Localization.GetEnglishCategory(raw);
+                _catLangVer = ver;
+                return _cachedCategory;
             }
         }
 
@@ -410,13 +465,27 @@ namespace FSAutoQuest.Menu
         {
             get
             {
-                if (!MenuPlugin.IsTurkish)
+                int ver = MenuPlugin.LanguageVersion;
+                if (_isFsCheatMaxLevel)
                 {
-                    if (_isFsCheatMaxLevel) return "Safely sets all dwellers to maximum (50) level without crashing.";
-                    return _inner.Description;
+                    if (_descLangVer == ver && _cachedDesc != null) return _cachedDesc;
+                    _cachedDesc = MenuPlugin.IsTurkish
+                        ? "Tum sakinleri guvenli sekilde maksimum (50) seviyeye cikarir (Cokme yapmaz)."
+                        : "Safely sets all dwellers to maximum (50) level without crashing.";
+                    _descLangVer = ver;
+                    return _cachedDesc;
                 }
-                if (_isFsCheatMaxLevel) return "Tum sakinleri guvenli sekilde maksimum (50) seviyeye cikarir (Cokme yapmaz).";
-                return Localization.TranslateDescription(_inner.Name, _inner.Description);
+                string rawName = _inner.Name;
+                string rawDesc = _inner.Description;
+                if (_descLangVer == ver && object.ReferenceEquals(_cachedRawDescName, rawName) && object.ReferenceEquals(_cachedRawDesc, rawDesc))
+                    return _cachedDesc;
+                _cachedRawDescName = rawName;
+                _cachedRawDesc = rawDesc;
+                _cachedDesc = MenuPlugin.IsTurkish
+                    ? Localization.TranslateDescription(rawName, rawDesc)
+                    : rawDesc;
+                _descLangVer = ver;
+                return _cachedDesc;
             }
         }
 
@@ -732,20 +801,20 @@ namespace FSAutoQuest.Menu
         }
     }
 
-    /// <summary>Magazadaki pack'leri (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka) ucretsiz satin almayi acar/kapar.</summary>
+    /// <summary>Magazadaki tum urunleri (pack'ler, Victor/Curie, Battle Pass) ucretsiz satin almayi acar/kapar.</summary>
     internal class FreeShopToggleCommand : CustomCommand
     {
         public override string Name
         {
-            get { return MenuPlugin.IsTurkish ? "Pack'ler Ucretsiz" : "Free Packs (Shop)"; }
+            get { return MenuPlugin.IsTurkish ? "Magaza: Her Sey Ucretsiz" : "Free Shop Purchases"; }
         }
         public override string Description
         {
             get
             {
                 return MenuPlugin.IsTurkish
-                    ? "Magazada 'Satin Al' butonuna bastiginizda odeme yapilmaz; pack icerigi dogrudan hesabiniza eklenir (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka)."
-                    : "When you press 'Buy' in the Shop, no payment is processed; the pack contents are granted instantly (Lunchbox, Pet Carrier, Mr. Handy, Starter Pack, Nuka).";
+                    ? "Magazada 'Satin Al' butonuna bastiginizda odeme yapilmaz; urun icerigi dogrudan hesabiniza eklenir. Kapsam: tum pack'ler, karakter paketleri (Victor/Curie) ve Battle Pass yukseltmeleri."
+                    : "When you press 'Buy' in the Shop, no payment is processed and the item is granted instantly. Covers all packs, character bundles (Victor/Curie) and Battle Pass upgrades.";
             }
         }
         public override string Format { get { return "/freepacks"; } }

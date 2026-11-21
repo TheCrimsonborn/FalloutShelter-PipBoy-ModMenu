@@ -13,7 +13,71 @@ namespace FSAutoQuest.Events
         private static ConfigEntry<bool> _cfgAutoDefend;
         private static ConfigEntry<bool> _cfgAutoTapVisitors;
         private static float _suppressAutoDefendUntil = 0f;
+        private static float _lastDefendCheck = 0f;
         private static float _lastTapCheck = 0f;
+
+        private sealed class InvaderMgrReflection
+        {
+            public readonly PropertyInfo HasInvaders;
+            public readonly MethodInfo IsAlive;
+            public readonly MethodInfo ForceStop;
+            public readonly MethodInfo CleanMgr;
+
+            public InvaderMgrReflection(Type t)
+            {
+                const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+                HasInvaders = t.GetProperty("HasInvaders", flags);
+                IsAlive = t.GetMethod("IsAlive", flags);
+                ForceStop = t.GetMethod("ForceStop", flags);
+                CleanMgr = t.GetMethod("CleanMgr", flags);
+            }
+        }
+
+        private static readonly Dictionary<Type, InvaderMgrReflection> _invaderMgrCache = new Dictionary<Type, InvaderMgrReflection>();
+        private static readonly List<Room> _emergencyRoomsScratch = new List<Room>();
+
+        private static readonly FieldInfo _fStrangerCanAppear = typeof(MysteriousStrangerMgr).GetField("m_canAppear", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly FieldInfo _fStrangerAppear = typeof(MysteriousStrangerMgr).GetField("m_appear", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly MethodInfo _mShowStranger = typeof(MysteriousStrangerMgr).GetMethod("ShowMysteriousStranger", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        private static readonly FieldInfo _fBottleLocked = typeof(BottleAndCappyMgr).GetField("m_locked", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly FieldInfo _fBottleCurCoroutine = typeof(BottleAndCappyMgr).GetField("m_currentCoroutine", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly MethodInfo _mBottleStartFlow = typeof(BottleAndCappyMgr).GetMethod("StartApperanceFlow", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        private static InvaderMgrReflection GetInvaderMgrReflection(object mgr)
+        {
+            Type t = mgr.GetType();
+            InvaderMgrReflection info;
+            if (!_invaderMgrCache.TryGetValue(t, out info))
+            {
+                info = new InvaderMgrReflection(t);
+                _invaderMgrCache[t] = info;
+            }
+            return info;
+        }
+
+        private static bool IsInvaderMgrActive(object mgr)
+        {
+            if (mgr == null) return false;
+            var info = GetInvaderMgrReflection(mgr);
+            if (info.HasInvaders != null && (bool)info.HasInvaders.GetValue(mgr, null))
+                return true;
+            if (info.IsAlive != null && (bool)info.IsAlive.Invoke(mgr, null))
+                return true;
+            return false;
+        }
+
+        private static void StopInvaderMgr(object mgr)
+        {
+            if (mgr == null) return;
+            try
+            {
+                var info = GetInvaderMgrReflection(mgr);
+                if (info.ForceStop != null) info.ForceStop.Invoke(mgr, null);
+                if (info.CleanMgr != null) info.CleanMgr.Invoke(mgr, null);
+            }
+            catch { }
+        }
 
         public static bool AutoDefendEnabled
         {
@@ -57,9 +121,12 @@ namespace FSAutoQuest.Events
 
         public static void TickUpdate()
         {
+            float now = Time.unscaledTime;
+
             // 1. Otomatik Olay Savuşturma (Auto-Defend)
-            if (AutoDefendEnabled && Time.unscaledTime >= _suppressAutoDefendUntil)
+            if (AutoDefendEnabled && now >= _suppressAutoDefendUntil && now - _lastDefendCheck >= 0.25f)
             {
+                _lastDefendCheck = now;
                 if (MonoSingleton<Vault>.IsInstanceValid)
                 {
                     var vault = MonoSingleton<Vault>.Instance;
@@ -75,9 +142,9 @@ namespace FSAutoQuest.Events
             }
 
             // 2. Ziyaretçileri Otomatik Yakalama (Mysterious Stranger & Bottle/Cappy)
-            if (AutoTapVisitorsEnabled && Time.unscaledTime - _lastTapCheck >= 0.25f)
+            if (AutoTapVisitorsEnabled && now - _lastTapCheck >= 0.25f)
             {
-                _lastTapCheck = Time.unscaledTime;
+                _lastTapCheck = now;
 
                 // Gizemli Yabancı
                 if (MonoSingleton<MysteriousStrangerMgr>.IsInstanceValid)
@@ -130,33 +197,19 @@ namespace FSAutoQuest.Events
 
             try
             {
-                object[] mgrs = new object[]
+                if (IsInvaderMgrActive(state.RaiderMgr)
+                    || IsInvaderMgrActive(state.DeathclawMgr)
+                    || IsInvaderMgrActive(state.AlienMgr)
+                    || IsInvaderMgrActive(state.GhoulMgr)
+                    || IsInvaderMgrActive(state.ProtectronMgr)
+                    || IsInvaderMgrActive(state.ScorchedMgr)
+                    || IsInvaderMgrActive(state.SecuritronMgr)
+                    || IsInvaderMgrActive(state.EnclaveSecurityMgr)
+                    || IsInvaderMgrActive(state.EnclavePowerArmorMgr)
+                    || IsInvaderMgrActive(state.Gen1SynthMgr)
+                    || IsInvaderMgrActive(state.Gen2SynthMgr))
                 {
-                    state.RaiderMgr,
-                    state.DeathclawMgr,
-                    state.AlienMgr,
-                    state.GhoulMgr,
-                    state.ProtectronMgr,
-                    state.ScorchedMgr,
-                    state.SecuritronMgr,
-                    state.EnclaveSecurityMgr,
-                    state.EnclavePowerArmorMgr,
-                    state.Gen1SynthMgr,
-                    state.Gen2SynthMgr
-                };
-
-                foreach (var mgr in mgrs)
-                {
-                    if (mgr != null)
-                    {
-                        var pHasInvaders = mgr.GetType().GetProperty("HasInvaders", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                        if (pHasInvaders != null && (bool)pHasInvaders.GetValue(mgr, null))
-                            return true;
-
-                        var mIsAlive = mgr.GetType().GetMethod("IsAlive", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                        if (mIsAlive != null && (bool)mIsAlive.Invoke(mgr, null))
-                            return true;
-                    }
+                    return true;
                 }
             }
             catch { }
@@ -249,11 +302,13 @@ namespace FSAutoQuest.Events
             if (state == null) return;
 
             // 1. Tüm oda içi acil durumları durdur
-            if (state.EmergencyRooms != null)
+            if (state.EmergencyRooms != null && state.EmergencyRooms.Count > 0)
             {
-                var rooms = new List<Room>(state.EmergencyRooms);
-                foreach (var r in rooms)
+                _emergencyRoomsScratch.Clear();
+                _emergencyRoomsScratch.AddRange(state.EmergencyRooms);
+                for (int i = 0; i < _emergencyRoomsScratch.Count; i++)
                 {
+                    var r = _emergencyRoomsScratch[i];
                     if (r != null)
                     {
                         try
@@ -263,6 +318,7 @@ namespace FSAutoQuest.Events
                         catch { }
                     }
                 }
+                _emergencyRoomsScratch.Clear();
             }
 
             // 2. VaultEmergencyState dahili invader temizliği
@@ -275,36 +331,17 @@ namespace FSAutoQuest.Events
             // 3. Kapıdan giren tüm istilacı yöneticilerini durdur & temizle
             try
             {
-                object[] mgrs = new object[]
-                {
-                    state.RaiderMgr,
-                    state.DeathclawMgr,
-                    state.AlienMgr,
-                    state.GhoulMgr,
-                    state.ProtectronMgr,
-                    state.ScorchedMgr,
-                    state.SecuritronMgr,
-                    state.EnclaveSecurityMgr,
-                    state.EnclavePowerArmorMgr,
-                    state.Gen1SynthMgr,
-                    state.Gen2SynthMgr
-                };
-
-                foreach (var mgr in mgrs)
-                {
-                    if (mgr != null)
-                    {
-                        try
-                        {
-                            var mForceStop = mgr.GetType().GetMethod("ForceStop", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                            if (mForceStop != null) mForceStop.Invoke(mgr, null);
-
-                            var mCleanMgr = mgr.GetType().GetMethod("CleanMgr", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                            if (mCleanMgr != null) mCleanMgr.Invoke(mgr, null);
-                        }
-                        catch { }
-                    }
-                }
+                StopInvaderMgr(state.RaiderMgr);
+                StopInvaderMgr(state.DeathclawMgr);
+                StopInvaderMgr(state.AlienMgr);
+                StopInvaderMgr(state.GhoulMgr);
+                StopInvaderMgr(state.ProtectronMgr);
+                StopInvaderMgr(state.ScorchedMgr);
+                StopInvaderMgr(state.SecuritronMgr);
+                StopInvaderMgr(state.EnclaveSecurityMgr);
+                StopInvaderMgr(state.EnclavePowerArmorMgr);
+                StopInvaderMgr(state.Gen1SynthMgr);
+                StopInvaderMgr(state.Gen2SynthMgr);
             }
             catch { }
 
@@ -336,26 +373,23 @@ namespace FSAutoQuest.Events
                 }
 
                 // Belirme iznini aç
-                var fCanAppear = typeof(MysteriousStrangerMgr).GetField("m_canAppear", BindingFlags.Instance | BindingFlags.NonPublic);
-                if (fCanAppear != null) fCanAppear.SetValue(mgr, true);
+                if (_fStrangerCanAppear != null) _fStrangerCanAppear.SetValue(mgr, true);
 
                 // Halihazırdaki bekleme coroutine'ini durdur
-                var fAppear = typeof(MysteriousStrangerMgr).GetField("m_appear", BindingFlags.Instance | BindingFlags.NonPublic);
-                if (fAppear != null)
+                if (_fStrangerAppear != null)
                 {
-                    var coroutine = fAppear.GetValue(mgr) as Coroutine;
+                    var coroutine = _fStrangerAppear.GetValue(mgr) as Coroutine;
                     if (coroutine != null && MonoSingleton<GameCoroutineMgr>.IsInstanceValid)
                     {
                         MonoSingleton<GameCoroutineMgr>.Instance.StopCoroutine(coroutine);
-                        fAppear.SetValue(mgr, null);
+                        _fStrangerAppear.SetValue(mgr, null);
                     }
                 }
 
                 // ShowMysteriousStranger çağır
-                var mShow = typeof(MysteriousStrangerMgr).GetMethod("ShowMysteriousStranger", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                if (mShow != null)
+                if (_mShowStranger != null)
                 {
-                    mShow.Invoke(mgr, null);
+                    _mShowStranger.Invoke(mgr, null);
                 }
                 else
                 {
@@ -376,26 +410,23 @@ namespace FSAutoQuest.Events
 
             try
             {
-                var fLocked = typeof(BottleAndCappyMgr).GetField("m_locked", BindingFlags.Instance | BindingFlags.NonPublic);
-                if (fLocked != null) fLocked.SetValue(mgr, false);
+                if (_fBottleLocked != null) _fBottleLocked.SetValue(mgr, false);
 
-                var fCur = typeof(BottleAndCappyMgr).GetField("m_currentCoroutine", BindingFlags.Instance | BindingFlags.NonPublic);
-                if (fCur != null)
+                if (_fBottleCurCoroutine != null)
                 {
-                    var cor = fCur.GetValue(mgr) as IEnumerator;
+                    var cor = _fBottleCurCoroutine.GetValue(mgr) as IEnumerator;
                     if (cor != null && MonoSingleton<GameCoroutineMgr>.IsInstanceValid)
                     {
                         MonoSingleton<GameCoroutineMgr>.Instance.StopCoroutine(cor);
                     }
                 }
 
-                var mStartFlow = typeof(BottleAndCappyMgr).GetMethod("StartApperanceFlow", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                if (mStartFlow != null)
+                if (_mBottleStartFlow != null)
                 {
-                    var enumerator = mStartFlow.Invoke(mgr, null) as IEnumerator;
+                    var enumerator = _mBottleStartFlow.Invoke(mgr, null) as IEnumerator;
                     if (enumerator != null && MonoSingleton<GameCoroutineMgr>.IsInstanceValid)
                     {
-                        if (fCur != null) fCur.SetValue(mgr, enumerator);
+                        if (_fBottleCurCoroutine != null) _fBottleCurCoroutine.SetValue(mgr, enumerator);
                         MonoSingleton<GameCoroutineMgr>.Instance.StartCoroutine(enumerator);
                     }
                 }

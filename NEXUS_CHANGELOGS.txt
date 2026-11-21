@@ -297,3 +297,27 @@ Renamed /dil -> /lang, /otomatikgorev -> /autoquest, /otomatikkasayadon -> /auto
 - Kalan tüm Türkçe `/` komutları uluslararası tutarlılık için İngilizceye dönüştürüldü.
 - /dil -> /lang, /otomatikgorev -> /autoquest, /otomatikkasayadon -> /autoreturn, /anindakapiyaulas -> /instantreturn, /ucretsizpack -> /freepacks, /maxseviye -> /maxlevel olarak güncellendi.
 ================================================================================
+
+--------------------------------------------------------------------------------
+VERSION: 1.4.6
+--------------------------------------------------------------------------------
+[Nexus Kopyala-Yapıştır / English]:
+Expanded the Free Shop cheat to cover every purchasable item: all packs, character bundles (Victor / Curie) and every Battle Pass upgrade (Premium, Premium Plus and Premium -> Premium Plus).
+The cheat now hard-blocks the real Steam/IAP payment flow: if an item cannot be granted, the game never falls back to a paid purchase.
+Added a direct-grant fallback for products the Steam/IAP catalog does not expose (Victor, Curie, Battle Pass), using the game's own reward and season-pass systems.
+Major performance pass: the mod menu no longer performs reflection lookups, GUIStyle creation or category list rebuilds on every OnGUI frame, making the menu noticeably lighter on CPU.
+Quest engine: cached QuestRoom and window lookups, throttled cleanup and loot sweeps, and Instant Return now also completes teams that are already travelling back to the vault.
+Event Manager: cached invader reflection data, throttled Auto-Defend checks (4x per second) and immediate cleanup of completed invasions.
+V.A.T.S. integration: binding to VATS.dll is now lazy and retry-limited, removing repeated FindObjectOfType scans; time-scale writes only happen when the value actually changes.
+Fixed the FSCheat save-decryption Harmony patch parameter mismatch ('passphrase' -> 'passPhrase'), removing the 'Parameter not found' error from the log.
+
+[Türkçe Açıklaması]:
+- 'Ücretsiz Mağaza' hilesi artık mağazadaki her ürünü kapsıyor: tüm pack'ler, karakter paketleri (Victor / Curie) ve tüm Battle Pass yükseltmeleri (Premium, Premium Plus ve Premium -> Premium Plus).
+- Hile gerçek Steam/IAP ödeme akışını tamamen kilitliyor: bir ürün verilemezse bile oyun ücretli satın almaya geri dönmüyor.
+- Steam/IAP kataloğunda görünmeyen ürünler (Victor, Curie, Battle Pass) için oyunun kendi ödül ve sezon bileti sistemini kullanan doğrudan verme yolu eklendi.
+- Büyük performans iyileştirmesi: mod menüsü artık her OnGUI karesinde yansıma araması, GUIStyle oluşturma ve kategori listesi yeniden kurma yapmıyor; menü CPU'da belirgin şekilde hafifledi.
+- Görev motoru: QuestRoom ve pencere aramaları önbelleğe alındı, temizlik ve ganimet taramaları sınırlandı; anında kasaya dönüş artık dönüş yolculuğundaki ekipleri de tamamlıyor.
+- Olay Yöneticisi: istilacı yansıma bilgileri önbelleğe alındı, otomatik savunma kontrolü saniyede 4 kez ile sınırlandı ve biten istilalar anında temizleniyor.
+- V.A.T.S. entegrasyonu: VATS.dll bağlantısı tembel ve deneme sayısı sınırlı hale getirildi, tekrarlanan FindObjectOfType taramaları kaldırıldı; zaman ölçeği sadece gerçekten değişince yazılıyor.
+- FSCheat kayıt şifre çözme Harmony yamasındaki parametre uyuşmazlığı düzeltildi ('passphrase' -> 'passPhrase'); log'daki 'Parameter not found' hatası giderildi.
+================================================================================

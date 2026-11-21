@@ -49,10 +49,15 @@ namespace FSAutoQuest
         private float _nextActionTime;
         private float _nextHealTime;
         private float _nextRefillTime;
+        private float _nextSweepTime;
+        private float _nextRoomCacheRefreshTime;
+        private float _nextVaultTeamScanTime;
 
         private string _questId;
         private float _questSeenAt;
         private readonly Dictionary<int, float> _roomClearedAt = new Dictionary<int, float>();
+        private UnityEngine.Object[] _cachedQuestRooms;
+        private string _cachedQuestRoomsId;
 
         private bool _resultShown;
         private float _resultShownAt;
@@ -66,6 +71,14 @@ namespace FSAutoQuest
         private int _pendingQuestLunchboxes;
         private int _pendingQuestPetCarriers;
         private int _pendingQuestMrHandy;
+
+        private string _traceFlagPath;
+        private bool _traceEnabledCached;
+        private float _nextTraceCheckTime;
+
+        private UnityEngine.Object _cachedThemeWin;
+        private UnityEngine.Object _cachedRecipeWin;
+        private UnityEngine.Object _cachedArrivalWin;
 
         private bool _inputErrorLogged;
         private readonly HashSet<string> _methodMissLogged = new HashSet<string>();
@@ -235,6 +248,10 @@ namespace FSAutoQuest
             CfgVerbose = Config.Bind("Zamanlama", "AyrintiliLog", false,
                 "Ayrintili (her islem) log kaydi.");
 
+            try { _traceFlagPath = Path.Combine(Paths.BepInExRootPath, TraceFlagName); }
+            catch { _traceFlagPath = null; }
+            _nextTraceCheckTime = 0f;
+
             Logger.LogInfo("FSAutoQuest 0.2.0 yuklendi. F6 = otomasyon ac/kapa, F4 = mod menu.");
             Logger.LogInfo("Ayarlar: stimpak=" + CfgStimpak.Value + " radaway=" + CfgRadaway.Value +
                            " autoQuest=" + CfgAutoQuest.Value + " autoHeal=" + CfgAutoHeal.Value);
@@ -254,10 +271,12 @@ namespace FSAutoQuest
                 if (Time.frameCount % 30 == 0 && TraceEnabled())
                     Logger.LogInfo(TraceLine());
 
-                if (InQuest())
+                object qs, qdm;
+                string qid;
+                if (TryGetActiveQuest(out qs, out qdm, out qid))
                 {
                     _wasInQuest = true;
-                    TickQuest();
+                    TickQuest(qs, qdm, qid);
                 }
                 else
                 {
@@ -269,6 +288,10 @@ namespace FSAutoQuest
                         _resultShown = false;
                         _exitRequested = false;
                         _roomClearedAt.Clear();
+                        _cachedQuestRooms = null;
+                        _cachedQuestRoomsId = null;
+                        _nextSweepTime = 0f;
+                        _nextRoomCacheRefreshTime = 0f;
                     }
                     TickVault();
                 }
@@ -352,8 +375,9 @@ namespace FSAutoQuest
             if (Time.unscaledTime < _nextLevelTime) return;
             _nextLevelTime = Time.unscaledTime + 0.05f;
 
-            var exp = _levelQueue[0];
-            _levelQueue.RemoveAt(0);
+            int last = _levelQueue.Count - 1;
+            var exp = _levelQueue[last];
+            _levelQueue.RemoveAt(last);
 
             try
             {
@@ -389,14 +413,18 @@ namespace FSAutoQuest
         private static object QuestScene { get { return Singleton("QuestScene"); } }
         private static object QuestDataManager { get { return Singleton("QuestDataManager"); } }
 
-        private static bool InQuest()
+        private static bool TryGetActiveQuest(out object qs, out object qdm, out string qid)
         {
+            qs = null;
+            qdm = null;
+            qid = null;
             try
             {
-                var qs = QuestScene;
-                var qdm = QuestDataManager;
-                if (qs == null || qdm == null) return false;
-                var qid = M(qdm, "CurrentQuestID") as string;
+                qs = QuestScene;
+                if (qs == null) return false;
+                qdm = QuestDataManager;
+                if (qdm == null) return false;
+                qid = M(qdm, "CurrentQuestID") as string;
                 if (string.IsNullOrEmpty(qid)) return false;
                 if (Truthy(M(qdm, "IsQuestDone"))) return false;
                 return true;
@@ -409,68 +437,47 @@ namespace FSAutoQuest
         {
             TryRegisterCompletion();
 
-            if (_pendingQuestLunchboxes > 0 || _pendingQuestPetCarriers > 0 || _pendingQuestMrHandy > 0)
-            {
-                try
-                {
-                    var wasteland = Singleton("Wasteland");
-                    if (wasteland != null)
-                    {
-                        var teams = M(wasteland, "Teams") as IList;
-                        if (teams != null)
-                        {
-                            foreach (var t in teams)
-                            {
-                                if (t == null) continue;
-                                int status = Convert.ToInt32(M(t, "m_eStatus"));
-                                if ((status == 2 || status == 3) && Truthy(Call(t, "IsQuest")))
-                                {
-                                    var eq = M(t, "TeamEquipment");
-                                    var br = eq != null ? M(eq, "BasicResources") : null;
-                                    var res = br != null ? M(br, "Resources") : null;
-                                    if (res != null)
-                                    {
-                                        EnsureBoxReward(res, "Lunchbox", _pendingQuestLunchboxes);
-                                        EnsureBoxReward(res, "PetCarrier", _pendingQuestPetCarriers);
-                                        EnsureBoxReward(res, "MrHandy", _pendingQuestMrHandy);
-                                        _pendingQuestLunchboxes = 0;
-                                        _pendingQuestPetCarriers = 0;
-                                        _pendingQuestMrHandy = 0;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogV("Kutu odulu dogrulama hatasi: " + Inner(ex).Message);
-                }
-            }
+            bool needBoxCheck = _pendingQuestLunchboxes > 0 || _pendingQuestPetCarriers > 0 || _pendingQuestMrHandy > 0;
+            bool needInstantReturn = CfgInstantReturn != null && CfgInstantReturn.Value;
 
-            if (CfgInstantReturn != null && CfgInstantReturn.Value)
+            if ((needBoxCheck || needInstantReturn) && Time.unscaledTime >= _nextVaultTeamScanTime)
             {
+                _nextVaultTeamScanTime = Time.unscaledTime + 0.6f;
                 try
                 {
                     var wasteland = Singleton("Wasteland");
-                    if (wasteland != null)
+                    var teams = wasteland != null ? M(wasteland, "Teams") as IList : null;
+                    if (teams != null)
                     {
-                        var teams = M(wasteland, "Teams") as IList;
-                        if (teams != null)
+                        foreach (var t in teams)
                         {
-                            foreach (var t in teams)
+                            if (t == null) continue;
+                            int status = Convert.ToInt32(M(t, "m_eStatus"));
+
+                            if (needBoxCheck && (status == 2 || status == 3) && Truthy(Call(t, "IsQuest")))
                             {
-                                if (t == null) continue;
-                                int status = Convert.ToInt32(M(t, "m_eStatus"));
-                                if (status == 2) // ReturningToVault
+                                var eq = M(t, "TeamEquipment");
+                                var br = eq != null ? M(eq, "BasicResources") : null;
+                                var res = br != null ? M(br, "Resources") : null;
+                                if (res != null)
                                 {
-                                    bool isQuest = Truthy(Call(t, "IsQuest"));
-                                    if (isQuest)
-                                    {
-                                        Call(t, "SkipReturningTime");
-                                        Logger.LogInfo("Gorev donus yolculugu tamamlandi, sakinler siginak kapisina ulasti.");
-                                    }
+                                    EnsureBoxReward(res, "Lunchbox", _pendingQuestLunchboxes);
+                                    EnsureBoxReward(res, "PetCarrier", _pendingQuestPetCarriers);
+                                    EnsureBoxReward(res, "MrHandy", _pendingQuestMrHandy);
+                                    _pendingQuestLunchboxes = 0;
+                                    _pendingQuestPetCarriers = 0;
+                                    _pendingQuestMrHandy = 0;
+                                    needBoxCheck = false;
+                                }
+                            }
+
+                            if (needInstantReturn && status == 2) // ReturningToVault
+                            {
+                                bool isQuest = Truthy(Call(t, "IsQuest"));
+                                if (isQuest)
+                                {
+                                    Call(t, "SkipReturningTime");
+                                    Logger.LogInfo("Gorev donus yolculugu tamamlandi, sakinler siginak kapisina ulasti.");
                                 }
                             }
                         }
@@ -478,7 +485,7 @@ namespace FSAutoQuest
                 }
                 catch (Exception ex)
                 {
-                    LogV("Instant return hatasi: " + Inner(ex).Message);
+                    LogV("Vault team tarama hatasi: " + Inner(ex).Message);
                 }
             }
 
@@ -604,13 +611,10 @@ namespace FSAutoQuest
         }
 
         // ------------------------------------------------------------ quest tick
-        private void TickQuest()
+        private void TickQuest(object qs, object qdm, string qid)
         {
-            var qdm = QuestDataManager;
-            var qs = QuestScene;
             if (qdm == null || qs == null) return;
 
-            string qid = M(qdm, "CurrentQuestID") as string;
             if (qid != _questId)
             {
                 _questId = qid;
@@ -618,7 +622,11 @@ namespace FSAutoQuest
                 _resultShown = false;
                 _exitRequested = false;
                 _roomClearedAt.Clear();
+                _cachedQuestRooms = null;
+                _cachedQuestRoomsId = null;
                 _nextActionTime = 0f;
+                _nextSweepTime = 0f;
+                _nextRoomCacheRefreshTime = 0f;
                 Logger.LogInfo("Gorev algilandi: " + qid);
             }
 
@@ -639,32 +647,47 @@ namespace FSAutoQuest
 
             if (succeeded)
             {
-                SweepAllQuestRoomsLoot(true);
+                if (!_resultShown)
+                {
+                    SweepAllQuestRoomsLoot(true);
+                }
                 HandleSuccess(qdm, qs);
                 return;
             }
 
-            var team = M(qdm, "CurrentWastelandTeam");
-            if (team != null)
+            bool needHeal = CfgAutoHeal.Value && Time.time >= _nextHealTime;
+            bool needRefill = CfgRefill.Value && Time.time >= _nextRefillTime;
+            if (needHeal || needRefill)
             {
-                if (CfgAutoHeal.Value && Time.time >= _nextHealTime)
+                var team = M(qdm, "CurrentWastelandTeam");
+                if (team != null)
                 {
-                    _nextHealTime = Time.time + 0.5f;
-                    HealTeam(team);
-                }
+                    if (needHeal)
+                    {
+                        _nextHealTime = Time.time + 0.5f;
+                        HealTeam(team);
+                    }
 
-                if (CfgRefill.Value && Time.time >= _nextRefillTime)
-                {
-                    _nextRefillTime = Time.time + 2f;
-                    TopUpConsumables(team);
+                    if (needRefill)
+                    {
+                        _nextRefillTime = Time.time + 2f;
+                        TopUpConsumables(team);
+                    }
                 }
             }
 
             if (CfgAutoQuest.Value)
             {
-                var qom = Singleton("QuestObjectiveMgr");
-                if (qom != null) ProgressObjectives(qom);
-                SweepAllQuestRoomsLoot(false);
+                if (Time.time >= _nextActionTime)
+                {
+                    var qom = Singleton("QuestObjectiveMgr");
+                    if (qom != null) ProgressObjectives(qom);
+                }
+                if (Time.unscaledTime >= _nextSweepTime)
+                {
+                    _nextSweepTime = Time.unscaledTime + 0.6f;
+                    SweepAllQuestRoomsLoot(false);
+                }
             }
         }
 
@@ -871,7 +894,7 @@ namespace FSAutoQuest
             }
         }
 
-                        private float _nextWindowCollectTime;
+        private float _nextWindowCollectTime;
 
         private void ProcessRewardWindows()
         {
@@ -879,16 +902,24 @@ namespace FSAutoQuest
             if (Time.unscaledTime < _nextWindowCollectTime) return;
             _nextWindowCollectTime = Time.unscaledTime + 0.35f;
 
+            // Gorev sahnesindeyken VaultGUI odul pencerelerini arama (FindObjectOfType spam onlenir)
+            if (QuestScene != null) return;
+
             try
             {
                 var vgm = Singleton("VaultGUIManager");
+                if (vgm == null && Singleton("Vault") == null) return;
 
                 // 1. Theme Recipe Loot Window (Tarif Parcalari, ornegin Minutemen Living Quarters)
                 object themeWin = vgm != null ? M(vgm, "m_themeRecipeLootWindow") : null;
                 if (themeWin == null)
                 {
-                    var tType = FindType("ThemeRecipeLootWindow");
-                    if (tType != null) themeWin = UnityEngine.Object.FindObjectOfType(tType);
+                    if (_cachedThemeWin == null)
+                    {
+                        var tType = FindType("ThemeRecipeLootWindow");
+                        if (tType != null) _cachedThemeWin = UnityEngine.Object.FindObjectOfType(tType);
+                    }
+                    themeWin = _cachedThemeWin;
                 }
 
                 if (themeWin != null)
@@ -925,8 +956,12 @@ namespace FSAutoQuest
                 object recipeWin = vgm != null ? M(vgm, "m_recipeLootWindow") : null;
                 if (recipeWin == null)
                 {
-                    var rType = FindType("RecipeLootWindow");
-                    if (rType != null) recipeWin = UnityEngine.Object.FindObjectOfType(rType);
+                    if (_cachedRecipeWin == null)
+                    {
+                        var rType = FindType("RecipeLootWindow");
+                        if (rType != null) _cachedRecipeWin = UnityEngine.Object.FindObjectOfType(rType);
+                    }
+                    recipeWin = _cachedRecipeWin;
                 }
 
                 if (recipeWin != null)
@@ -956,8 +991,12 @@ namespace FSAutoQuest
                 object arrWin = vgm != null ? M(vgm, "m_arrivalWindow") : null;
                 if (arrWin == null)
                 {
-                    var aType = FindType("ArrivalWindow");
-                    if (aType != null) arrWin = UnityEngine.Object.FindObjectOfType(aType);
+                    if (_cachedArrivalWin == null)
+                    {
+                        var aType = FindType("ArrivalWindow");
+                        if (aType != null) _cachedArrivalWin = UnityEngine.Object.FindObjectOfType(aType);
+                    }
+                    arrWin = _cachedArrivalWin;
                 }
 
                 if (arrWin != null)
@@ -1038,20 +1077,37 @@ namespace FSAutoQuest
             }
         }
 
+        private UnityEngine.Object[] GetQuestRooms(bool forceRefresh)
+        {
+            if (!forceRefresh &&
+                _cachedQuestRooms != null &&
+                _cachedQuestRooms.Length > 0 &&
+                _cachedQuestRoomsId == _questId &&
+                Time.unscaledTime < _nextRoomCacheRefreshTime)
+            {
+                return _cachedQuestRooms;
+            }
+
+            var roomType = FindType("QuestRoom");
+            if (roomType == null) return null;
+
+            _cachedQuestRooms = UnityEngine.Object.FindObjectsOfType(roomType);
+            _cachedQuestRoomsId = _questId;
+            _nextRoomCacheRefreshTime = Time.unscaledTime + 5.0f;
+            return _cachedQuestRooms;
+        }
+
         private void SweepAllQuestRoomsLoot(bool forceCompleteAll)
         {
             try
             {
-                var roomType = FindType("QuestRoom");
-                if (roomType == null) return;
-
-                var allRooms = UnityEngine.Object.FindObjectsOfType(roomType);
+                var allRooms = GetQuestRooms(forceCompleteAll);
                 if (allRooms == null || allRooms.Length == 0) return;
 
                 foreach (var obj in allRooms)
                 {
-                    if (CfgAutoKillEnemies != null && CfgAutoKillEnemies.Value) { KillRoomEnemies(obj); }
                     if (obj == null) continue;
+                    if (CfgAutoKillEnemies != null && CfgAutoKillEnemies.Value) { KillRoomEnemies(obj); }
 
                     // Odayı temizle (düşmanlar öldürüldü sayılır)
                     if (forceCompleteAll && !Truthy(M(obj, "IsRoomClearOutSucceeded")))
@@ -1195,6 +1251,13 @@ namespace FSAutoQuest
         // ------------------------------------------------------------ success / exit
         private void HandleSuccess(object qdm, object qs)
         {
+            if (_resultShown)
+            {
+                if (!CfgAutoReturn.Value) return;
+                if (!_exitRequested && Time.unscaledTime - _resultShownAt <= 1.2f) return;
+                if (_exitRequested && Time.time - _exitRequestedAt <= 12f) return;
+            }
+
             object rw = null;
             try
             {
@@ -1318,10 +1381,16 @@ namespace FSAutoQuest
         }
 
         // ------------------------------------------------------------ logging
-        private static bool TraceEnabled()
+        private bool TraceEnabled()
         {
-            try { return File.Exists(Path.Combine(Paths.BepInExRootPath, TraceFlagName)); }
-            catch { return false; }
+            float now = Time.unscaledTime;
+            if (now >= _nextTraceCheckTime)
+            {
+                _nextTraceCheckTime = now + 10f;
+                try { _traceEnabledCached = !string.IsNullOrEmpty(_traceFlagPath) && File.Exists(_traceFlagPath); }
+                catch { _traceEnabledCached = false; }
+            }
+            return _traceEnabledCached;
         }
 
         private string TraceLine()
@@ -1377,7 +1446,139 @@ namespace FSAutoQuest
         private const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
         private const BindingFlags SFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy;
         private static readonly object[] EmptyArgs = new object[0];
+        private static readonly string[] SingletonFieldNames = new[] { "m_Instance", "m_instance", "_instance", "instance", "s_instance" };
+        private static readonly CachedMethod[] EmptyCachedMethods = new CachedMethod[0];
+        private static readonly FieldInfo[] EmptyFieldInfos = new FieldInfo[0];
+
+        private struct MemberKey : IEquatable<MemberKey>
+        {
+            public readonly Type Type;
+            public readonly string Name;
+
+            public MemberKey(Type type, string name)
+            {
+                Type = type;
+                Name = name;
+            }
+
+            public bool Equals(MemberKey other)
+            {
+                return Type == other.Type && string.Equals(Name, other.Name, StringComparison.Ordinal);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is MemberKey && Equals((MemberKey)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return ((Type != null ? Type.GetHashCode() : 0) * 397) ^ (Name != null ? StringComparer.Ordinal.GetHashCode(Name) : 0);
+                }
+            }
+        }
+
+        private struct MethodKey : IEquatable<MethodKey>
+        {
+            public readonly Type Type;
+            public readonly string Name;
+            public readonly int ArgCount;
+
+            public MethodKey(Type type, string name, int argCount)
+            {
+                Type = type;
+                Name = name;
+                ArgCount = argCount;
+            }
+
+            public bool Equals(MethodKey other)
+            {
+                return ArgCount == other.ArgCount && Type == other.Type && string.Equals(Name, other.Name, StringComparison.Ordinal);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is MethodKey && Equals((MethodKey)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int h = Type != null ? Type.GetHashCode() : 0;
+                    h = (h * 397) ^ (Name != null ? StringComparer.Ordinal.GetHashCode(Name) : 0);
+                    h = (h * 397) ^ ArgCount;
+                    return h;
+                }
+            }
+        }
+
+        private struct StringPairKey : IEquatable<StringPairKey>
+        {
+            public readonly string A;
+            public readonly string B;
+
+            public StringPairKey(string a, string b)
+            {
+                A = a;
+                B = b;
+            }
+
+            public bool Equals(StringPairKey other)
+            {
+                return string.Equals(A, other.A, StringComparison.Ordinal) &&
+                       string.Equals(B, other.B, StringComparison.Ordinal);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is StringPairKey && Equals((StringPairKey)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int h = A != null ? StringComparer.Ordinal.GetHashCode(A) : 0;
+                    return (h * 397) ^ (B != null ? StringComparer.Ordinal.GetHashCode(B) : 0);
+                }
+            }
+        }
+
+        private struct ReadMember
+        {
+            public PropertyInfo Prop;
+            public FieldInfo Field;
+        }
+
+        private struct WriteMember
+        {
+            public PropertyInfo Prop;
+            public FieldInfo Field;
+            public Type ValueType;
+        }
+
+        private struct CachedMethod
+        {
+            public MethodInfo Method;
+            public ParameterInfo[] Params;
+        }
+
+        private sealed class SingletonAccessor
+        {
+            public PropertyInfo ValidProp;
+            public FieldInfo[] InstanceFields;
+            public PropertyInfo InstanceProp;
+        }
+
         private static readonly Dictionary<string, Type> TypeCache = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<StringPairKey, object> EnumCache = new Dictionary<StringPairKey, object>();
+        private static readonly Dictionary<MemberKey, ReadMember> ReadMemberCache = new Dictionary<MemberKey, ReadMember>();
+        private static readonly Dictionary<MemberKey, WriteMember> WriteMemberCache = new Dictionary<MemberKey, WriteMember>();
+        private static readonly Dictionary<MethodKey, CachedMethod[]> MethodCache = new Dictionary<MethodKey, CachedMethod[]>();
+        private static readonly Dictionary<Type, SingletonAccessor> SingletonCache = new Dictionary<Type, SingletonAccessor>();
 
         private static Exception Inner(Exception e)
         {
@@ -1432,37 +1633,73 @@ namespace FSAutoQuest
 
         private static object EnumVal(string typeName, string member, int fallback)
         {
+            var key = new StringPairKey(typeName, member);
+            object cached;
+            if (EnumCache.TryGetValue(key, out cached)) return cached;
+
+            object result = null;
             var t = FindType(typeName);
             if (t != null && t.IsEnum)
             {
-                try { return Enum.Parse(t, member); } catch { }
-                try { return Enum.ToObject(t, fallback); } catch { }
+                try { result = Enum.Parse(t, member); } catch { }
+                if (result == null)
+                {
+                    try { result = Enum.ToObject(t, fallback); } catch { }
+                }
             }
-            return null;
+
+            EnumCache[key] = result;
+            return result;
         }
 
         private static object M(object o, string name)
         {
             if (o == null) return null;
-            var t = o.GetType();
-            while (t != null)
+            var type = o.GetType();
+            var key = new MemberKey(type, name);
+            ReadMember rm;
+            if (!ReadMemberCache.TryGetValue(key, out rm))
             {
-                try
+                rm = default(ReadMember);
+                var t = type;
+                while (t != null)
                 {
-                    var p = t.GetProperty(name, Flags);
-                    if (p != null && p.GetIndexParameters().Length == 0)
-                        return p.GetValue(o, null);
-                }
-                catch { return null; }
+                    try
+                    {
+                        var p = t.GetProperty(name, Flags);
+                        if (p != null && p.GetIndexParameters().Length == 0)
+                        {
+                            rm.Prop = p;
+                            break;
+                        }
+                    }
+                    catch { }
 
-                try
-                {
-                    var f = t.GetField(name, Flags);
-                    if (f != null) return f.GetValue(o);
-                }
-                catch { return null; }
+                    try
+                    {
+                        var f = t.GetField(name, Flags);
+                        if (f != null)
+                        {
+                            rm.Field = f;
+                            break;
+                        }
+                    }
+                    catch { }
 
-                t = t.BaseType;
+                    t = t.BaseType;
+                }
+                ReadMemberCache[key] = rm;
+            }
+
+            if (rm.Prop != null)
+            {
+                try { return rm.Prop.GetValue(o, null); }
+                catch { return null; }
+            }
+            if (rm.Field != null)
+            {
+                try { return rm.Field.GetValue(o); }
+                catch { return null; }
             }
             return null;
         }
@@ -1470,100 +1707,180 @@ namespace FSAutoQuest
         private bool SetMember(object o, string name, object value)
         {
             if (o == null) return false;
-            var t = o.GetType();
-            while (t != null)
+            var type = o.GetType();
+            var key = new MemberKey(type, name);
+            WriteMember wm;
+            if (!WriteMemberCache.TryGetValue(key, out wm))
+            {
+                wm = default(WriteMember);
+                var t = type;
+                while (t != null)
+                {
+                    try
+                    {
+                        var p = t.GetProperty(name, Flags);
+                        if (p != null && p.GetIndexParameters().Length == 0 && p.CanWrite)
+                        {
+                            wm.Prop = p;
+                            wm.ValueType = p.PropertyType;
+                            break;
+                        }
+                    }
+                    catch { }
+
+                    try
+                    {
+                        var f = t.GetField(name, Flags);
+                        if (f != null && !f.IsInitOnly)
+                        {
+                            wm.Field = f;
+                            wm.ValueType = f.FieldType;
+                            break;
+                        }
+                    }
+                    catch { }
+
+                    // auto-property backing field
+                    try
+                    {
+                        var bf = t.GetField("<" + name + ">k__BackingField", Flags);
+                        if (bf != null)
+                        {
+                            wm.Field = bf;
+                            wm.ValueType = bf.FieldType;
+                            break;
+                        }
+                    }
+                    catch { }
+
+                    t = t.BaseType;
+                }
+                WriteMemberCache[key] = wm;
+            }
+
+            if (wm.Prop != null)
             {
                 try
                 {
-                    var p = t.GetProperty(name, Flags);
-                    if (p != null && p.GetIndexParameters().Length == 0 && p.CanWrite)
-                    {
-                        p.SetValue(o, ConvertArg(p.PropertyType, value), null);
-                        return true;
-                    }
+                    wm.Prop.SetValue(o, ConvertArg(wm.ValueType, value), null);
+                    return true;
                 }
-                catch { }
-
+                catch { return false; }
+            }
+            if (wm.Field != null)
+            {
                 try
                 {
-                    var f = t.GetField(name, Flags);
-                    if (f != null && !f.IsInitOnly)
-                    {
-                        f.SetValue(o, ConvertArg(f.FieldType, value));
-                        return true;
-                    }
+                    wm.Field.SetValue(o, ConvertArg(wm.ValueType, value));
+                    return true;
                 }
-                catch { }
-
-                // auto-property backing field
-                try
-                {
-                    var bf = t.GetField("<" + name + ">k__BackingField", Flags);
-                    if (bf != null)
-                    {
-                        bf.SetValue(o, ConvertArg(bf.FieldType, value));
-                        return true;
-                    }
-                }
-                catch { }
-
-                t = t.BaseType;
+                catch { return false; }
             }
             return false;
         }
 
+        private object Call(object target, string name)
+        {
+            return CallInternal(target, name, EmptyArgs);
+        }
+
         private object Call(object target, string name, params object[] args)
         {
-            if (target == null) return null;
-            if (args == null) args = EmptyArgs;
-            var t = target.GetType();
-            while (t != null)
-            {
-                MethodInfo best = null;
-                try
-                {
-                    foreach (var m in t.GetMethods(Flags))
-                    {
-                        if (m.Name != name) continue;
-                        var ps = m.GetParameters();
-                        if (ps.Length != args.Length) continue;
-                        bool ok = true;
-                        for (int i = 0; i < ps.Length; i++)
-                        {
-                            var pt = ps[i].ParameterType;
-                            if (args[i] == null)
-                            {
-                                if (pt.IsValueType && Nullable.GetUnderlyingType(pt) == null) { ok = false; break; }
-                                continue;
-                            }
-                            if (!pt.IsAssignableFrom(args[i].GetType())) { ok = false; break; }
-                        }
-                        if (ok) { best = m; break; }
-                    }
-                }
-                catch { }
+            return CallInternal(target, name, args ?? EmptyArgs);
+        }
 
-                if (best != null)
+        private object CallInternal(object target, string name, object[] args)
+        {
+            if (target == null) return null;
+            var type = target.GetType();
+            var key = new MethodKey(type, name, args.Length);
+            CachedMethod[] candidates;
+            if (!MethodCache.TryGetValue(key, out candidates))
+            {
+                List<CachedMethod> list = null;
+                var t = type;
+                while (t != null)
                 {
-                    var ps = best.GetParameters();
-                    var converted = new object[args.Length];
-                    for (int i = 0; i < args.Length; i++)
-                        converted[i] = ConvertArg(ps[i].ParameterType, args[i]);
                     try
                     {
-                        return best.Invoke(target, converted);
+                        var methods = t.GetMethods(Flags);
+                        for (int mi = 0; mi < methods.Length; mi++)
+                        {
+                            var m = methods[mi];
+                            if (m.Name != name) continue;
+                            var ps = m.GetParameters();
+                            if (ps.Length != args.Length) continue;
+                            if (list == null) list = new List<CachedMethod>(2);
+                            list.Add(new CachedMethod { Method = m, Params = ps });
+                        }
                     }
-                    catch (TargetInvocationException e)
-                    {
-                        throw e.InnerException ?? e;
-                    }
+                    catch { }
+                    t = t.BaseType;
                 }
-                t = t.BaseType;
+                candidates = list != null ? list.ToArray() : EmptyCachedMethods;
+                MethodCache[key] = candidates;
             }
 
-            string key = target.GetType().Name + "." + name + "/" + args.Length;
-            if (_methodMissLogged.Add(key))
-                Logger.LogWarning("Metot bulunamadi: " + key);
+            for (int ci = 0; ci < candidates.Length; ci++)
+            {
+                var cand = candidates[ci];
+                var ps = cand.Params;
+                bool ok = true;
+                bool needsConvert = false;
+                for (int i = 0; i < ps.Length; i++)
+                {
+                    var pt = ps[i].ParameterType;
+                    var a = args[i];
+                    if (a == null)
+                    {
+                        if (pt.IsValueType && Nullable.GetUnderlyingType(pt) == null) { ok = false; break; }
+                        continue;
+                    }
+                    if (!pt.IsAssignableFrom(a.GetType())) { ok = false; break; }
+                }
+                if (!ok) continue;
+
+                object[] invokeArgs;
+                if (args.Length == 0)
+                {
+                    invokeArgs = EmptyArgs;
+                }
+                else
+                {
+                    for (int i = 0; i < args.Length; i++)
+                    {
+                        var a = args[i];
+                        if (a != null && !ps[i].ParameterType.IsAssignableFrom(a.GetType()))
+                        {
+                            needsConvert = true;
+                            break;
+                        }
+                    }
+                    if (needsConvert)
+                    {
+                        invokeArgs = new object[args.Length];
+                        for (int i = 0; i < args.Length; i++)
+                            invokeArgs[i] = ConvertArg(ps[i].ParameterType, args[i]);
+                    }
+                    else
+                    {
+                        invokeArgs = args;
+                    }
+                }
+
+                try
+                {
+                    return cand.Method.Invoke(target, invokeArgs);
+                }
+                catch (TargetInvocationException e)
+                {
+                    throw e.InnerException ?? e;
+                }
+            }
+
+            string missKey = type.Name + "." + name + "/" + args.Length;
+            if (_methodMissLogged.Add(missKey))
+                Logger.LogWarning("Metot bulunamadi: " + missKey);
             return null;
         }
 
@@ -1599,55 +1916,84 @@ namespace FSAutoQuest
         {
             var t = FindType(typeName);
             if (t == null) return null;
-            var bt = t;
-            while (bt != null)
+
+            SingletonAccessor acc;
+            if (!SingletonCache.TryGetValue(t, out acc))
             {
-                // 1. Önce IsInstanceValid kontrolü yap (MonoSingleton<T> için).
-                // Eğer false ise sahnede obje yoktur; Instance çağırmak Unity'nin
-                // "cant find a gameobject of instance..." uyarısını loglamasına yol açar.
-                try
+                acc = new SingletonAccessor();
+                List<FieldInfo> fields = null;
+                var bt = t;
+                while (bt != null)
                 {
-                    var validProp = bt.GetProperty("IsInstanceValid", SFlags);
-                    if (validProp != null)
+                    if (acc.ValidProp == null)
                     {
-                        var val = validProp.GetValue(null, null);
-                        if (val is bool && !(bool)val)
+                        try { acc.ValidProp = bt.GetProperty("IsInstanceValid", SFlags); } catch { }
+                    }
+
+                    for (int i = 0; i < SingletonFieldNames.Length; i++)
+                    {
+                        try
                         {
-                            return null;
+                            var f = bt.GetField(SingletonFieldNames[i], SFlags);
+                            if (f != null)
+                            {
+                                if (fields == null) fields = new List<FieldInfo>(2);
+                                if (!fields.Contains(f)) fields.Add(f);
+                            }
                         }
+                        catch { }
                     }
-                }
-                catch { }
 
-                // 2. Statik alanları doğrudan oku (m_Instance vs.)
-                foreach (var fn in new[] { "m_Instance", "m_instance", "_instance", "instance", "s_instance" })
-                {
-                    try
+                    if (acc.InstanceProp == null)
                     {
-                        var f = bt.GetField(fn, SFlags);
-                        if (f != null)
-                        {
-                            var v = f.GetValue(null);
-                            if (v != null) return v;
-                        }
+                        try { acc.InstanceProp = bt.GetProperty("Instance", SFlags); } catch { }
                     }
-                    catch { }
-                }
 
-                // 3. IsInstanceValid true ise veya bulunamadıysa Instance property'sini çağır
-                try
-                {
-                    var p = bt.GetProperty("Instance", SFlags);
-                    if (p != null)
-                    {
-                        var v = p.GetValue(null, null);
-                        if (v != null) return v;
-                    }
+                    bt = bt.BaseType;
                 }
-                catch { }
-
-                bt = bt.BaseType;
+                acc.InstanceFields = fields != null ? fields.ToArray() : EmptyFieldInfos;
+                SingletonCache[t] = acc;
             }
+
+            // 1. Önce IsInstanceValid kontrolü yap (MonoSingleton<T> için).
+            // Eğer false ise sahnede obje yoktur; Instance çağırmak Unity'nin
+            // "cant find a gameobject of instance..." uyarısını loglamasına yol açar.
+            if (acc.ValidProp != null)
+            {
+                try
+                {
+                    var val = acc.ValidProp.GetValue(null, null);
+                    if (val is bool && !(bool)val)
+                    {
+                        return null;
+                    }
+                }
+                catch { }
+            }
+
+            // 2. Statik alanları doğrudan oku (m_Instance vs.)
+            var instFields = acc.InstanceFields;
+            for (int i = 0; i < instFields.Length; i++)
+            {
+                try
+                {
+                    var v = instFields[i].GetValue(null);
+                    if (v != null) return v;
+                }
+                catch { }
+            }
+
+            // 3. IsInstanceValid true ise veya bulunamadıysa Instance property'sini çağır
+            if (acc.InstanceProp != null)
+            {
+                try
+                {
+                    var v = acc.InstanceProp.GetValue(null, null);
+                    if (v != null) return v;
+                }
+                catch { }
+            }
+
             return null;
         }
     }
